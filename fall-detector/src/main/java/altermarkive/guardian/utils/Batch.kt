@@ -1,4 +1,4 @@
-package altermarkive.guardian
+package altermarkive.guardian.utils
 
 import android.content.ContentValues
 

@@ -1,12 +1,14 @@
-package altermarkive.guardian
+package altermarkive.guardian.ui
 
+import altermarkive.guardian.R
+import altermarkive.guardian.Surface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.google.android.material.tabs.TabLayout
-
+//Muestra la interfaz de inicio
 class Signals : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,

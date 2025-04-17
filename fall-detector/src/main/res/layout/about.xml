@@ -7,7 +7,7 @@
     android:background="@android:color/white"
     android:orientation="vertical"
     android:paddingBottom="?attr/actionBarSize"
-    tools:context="altermarkive.guardian.About">
+    tools:context="altermarkive.guardian.core.About">
 
     <WebView
         android:id="@+id/information"

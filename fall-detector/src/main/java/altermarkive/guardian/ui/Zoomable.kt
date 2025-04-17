@@ -1,4 +1,4 @@
-package altermarkive.guardian
+package altermarkive.guardian.ui
 
 import android.content.Context
 import android.graphics.*

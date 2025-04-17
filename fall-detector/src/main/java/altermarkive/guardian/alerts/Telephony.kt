@@ -1,5 +1,7 @@
-package altermarkive.guardian
+package altermarkive.guardian.alerts
 
+import altermarkive.guardian.utils.Log
+import altermarkive.guardian.core.Guardian
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver

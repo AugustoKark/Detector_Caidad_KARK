@@ -6,7 +6,7 @@
     android:layout_height="fill_parent"
     android:orientation="vertical"
     android:paddingBottom="?attr/actionBarSize"
-    tools:context="altermarkive.guardian.Signals">
+    tools:context="altermarkive.guardian.ui.Signals">
 
     <HorizontalScrollView
         android:layout_width="match_parent"

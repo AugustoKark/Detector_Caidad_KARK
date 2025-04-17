@@ -1,4 +1,6 @@
-package altermarkive.guardian
+package altermarkive.guardian.utils
+
+import altermarkive.guardian.detection.Sampler
 
 object Log {
     fun println(level: Int, tag: String, entry: String) {

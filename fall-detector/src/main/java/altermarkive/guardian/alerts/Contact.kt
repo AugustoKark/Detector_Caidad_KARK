@@ -1,5 +1,7 @@
-package altermarkive.guardian
+package altermarkive.guardian.alerts
 
+import altermarkive.guardian.R
+import altermarkive.guardian.core.Guardian
 import android.Manifest
 import android.content.Context
 import android.content.Intent

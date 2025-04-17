@@ -1,5 +1,8 @@
-package altermarkive.guardian
+package altermarkive.guardian.sensors
 
+import altermarkive.guardian.alerts.Contact
+import altermarkive.guardian.alerts.Messenger
+import altermarkive.guardian.core.Guardian
 import android.Manifest
 import android.content.Context
 import android.content.Intent
@@ -114,6 +117,15 @@ class Positioning private constructor(private val context: Guardian) : LocationL
                 reset(METERS_10, MINUTES_10)
                 replied = true
             }
+        }
+    }
+
+    // En Positioning.kt, añadir este método
+    fun getLastKnownLocation(): Location? {
+        return if (accuracy(gps) < accuracy(network)) {
+            gps
+        } else {
+            network
         }
     }
 

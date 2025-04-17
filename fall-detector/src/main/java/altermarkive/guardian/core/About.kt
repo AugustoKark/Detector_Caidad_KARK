@@ -1,5 +1,7 @@
-package altermarkive.guardian
+package altermarkive.guardian.core
 
+import altermarkive.guardian.alerts.Alarm
+import altermarkive.guardian.R
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +12,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
+import android.util.Log
 import android.webkit.WebView
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
@@ -91,7 +94,7 @@ class About : Fragment(), View.OnClickListener {
             if (!granted) {
                 Guardian.say(
                     requireActivity().applicationContext,
-                    android.util.Log.ERROR,
+                    Log.ERROR,
                     TAG,
                     "ERROR: Permissions were not granted"
                 )

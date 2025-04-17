@@ -1,5 +1,6 @@
-package altermarkive.guardian
+package altermarkive.guardian.core
 
+import altermarkive.guardian.R
 import altermarkive.guardian.databinding.MainBinding
 import android.app.Dialog
 import android.content.Context

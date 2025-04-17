@@ -1,5 +1,7 @@
-package altermarkive.guardian
+package altermarkive.guardian.alerts
 
+import altermarkive.guardian.core.Guardian
+import altermarkive.guardian.sensors.Positioning
 import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context

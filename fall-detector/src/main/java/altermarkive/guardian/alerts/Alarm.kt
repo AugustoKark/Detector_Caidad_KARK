@@ -1,5 +1,7 @@
-package altermarkive.guardian
+package altermarkive.guardian.alerts
 
+import altermarkive.guardian.R
+import altermarkive.guardian.core.Guardian
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
@@ -31,17 +33,17 @@ class Alarm private constructor(val context: Guardian) {
         private var singleton: Alarm? = null
 
         internal fun instance(context: Guardian): Alarm {
-            var singleton = this.singleton
+            var singleton = singleton
             if (singleton == null) {
                 singleton = Alarm(context)
-                this.singleton = singleton
+                Companion.singleton = singleton
             }
             return singleton
         }
 
         internal fun siren(context: Context) {
             loudest(context, AudioManager.STREAM_ALARM)
-            val singleton = this.singleton
+            val singleton = singleton
             if (singleton != null) {
                 val pool = singleton.pool
                 pool.play(singleton.id, 1.0f, 1.0f, 1, 3, 1.0f)

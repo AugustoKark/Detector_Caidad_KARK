@@ -1,5 +1,12 @@
-package altermarkive.guardian
+package altermarkive.guardian.core
 
+import altermarkive.guardian.alerts.Alarm
+import altermarkive.guardian.detection.Detector
+import altermarkive.guardian.utils.Log
+import altermarkive.guardian.sensors.Positioning
+import altermarkive.guardian.R
+import altermarkive.guardian.detection.Sampler
+import altermarkive.guardian.storage.ServerAdapter
 import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
@@ -16,6 +23,8 @@ class Guardian : Service() {
         Detector.instance(this)
         Sampler.instance(this)
         Alarm.instance(this)
+        // En el método onCreate()
+        ServerAdapter.initializeScheduledUploads(this)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

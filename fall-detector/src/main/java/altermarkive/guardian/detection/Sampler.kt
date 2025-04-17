@@ -1,5 +1,11 @@
-package altermarkive.guardian
+package altermarkive.guardian.detection
 
+import altermarkive.guardian.storage.Data
+import altermarkive.guardian.utils.Log
+import altermarkive.guardian.R
+import altermarkive.guardian.sensors.Report
+import altermarkive.guardian.core.Guardian
+import altermarkive.guardian.storage.ServerAdapter
 import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.Sensor
@@ -66,10 +72,10 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
 
         @Synchronized
         fun instance(guardian: Guardian): Sampler {
-            var instance = this.instance
+            var instance = instance
             if (instance == null) {
                 instance = Sampler(guardian)
-                this.instance = instance
+                Companion.instance = instance
             }
             return instance
         }
@@ -81,6 +87,16 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
 
     override fun onSensorChanged(event: SensorEvent) {
         data?.dispatch(event.sensor.type, event.timestamp, event.values)
+        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+            val deviceId = Report.id(context())
+            ServerAdapter.addAccelerometerReading(
+                deviceId,
+                event.timestamp,
+                event.values[0],
+                event.values[1],
+                event.values[2]
+            )
+    }
     }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {

@@ -7,19 +7,19 @@
 
     <fragment
         android:id="@+id/about"
-        android:name="altermarkive.guardian.About"
+        android:name="altermarkive.guardian.core.About"
         android:label="@string/about"
         tools:layout="@layout/about" />
 
     <fragment
         android:id="@+id/signals"
-        android:name="altermarkive.guardian.Signals"
+        android:name="altermarkive.guardian.ui.Signals"
         android:label="@string/signals"
         tools:layout="@layout/signals" />
 
     <fragment
         android:id="@+id/settings"
-        android:name="altermarkive.guardian.Settings"
+        android:name="altermarkive.guardian.ui.Settings"
         android:label="@string/settings" />
 
 </navigation>

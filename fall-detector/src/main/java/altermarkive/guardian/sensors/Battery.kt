@@ -1,4 +1,4 @@
-package altermarkive.guardian
+package altermarkive.guardian.sensors
 
 import android.content.Context
 import android.content.Intent

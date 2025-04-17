@@ -1,5 +1,6 @@
-package altermarkive.guardian
+package altermarkive.guardian.storage
 
+import altermarkive.guardian.utils.Log
 import java.io.File
 import java.io.FileInputStream
 import java.io.FilenameFilter

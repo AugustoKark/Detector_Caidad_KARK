@@ -1,5 +1,6 @@
-package altermarkive.guardian
+package altermarkive.guardian.ui
 
+import altermarkive.guardian.R
 import android.os.Bundle
 import androidx.preference.PreferenceFragmentCompat
 

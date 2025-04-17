@@ -1,5 +1,6 @@
-package altermarkive.guardian
+package altermarkive.guardian.sensors
 
+import altermarkive.guardian.utils.Log
 import android.annotation.SuppressLint
 import android.content.Context
 import android.hardware.Sensor

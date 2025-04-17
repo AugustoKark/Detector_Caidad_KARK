@@ -1,10 +1,13 @@
-package altermarkive.guardian
+package altermarkive.guardian.core
 
+import altermarkive.guardian.storage.Upload
+import altermarkive.guardian.utils.Log
 import android.content.BroadcastReceiver
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.content.Context
-
+//Sube los datos a internet
+//detecta si hay internet y si es asi comienza la subida de datos
 class Connectivity : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         @Suppress("DEPRECATION")
