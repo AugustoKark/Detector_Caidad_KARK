@@ -64,7 +64,13 @@ class Detector private constructor() : SensorEventListener {
 
         private const val G = 1.0
 
-        private const val LYING_AVERAGE_Z_LPF = 0.5
+//        private const val LYING_AVERAGE_Z_LPF = 0.5
+
+        private const val LYING_AVERAGE_Z_LPF_MIN = 0.3
+        private const val LYING_AVERAGE_Z_LPF_MAX = 0.8
+
+
+
 
         internal const val BUFFER_X: Int = 0
         internal const val BUFFER_Y: Int = 1
@@ -212,16 +218,18 @@ class Detector private constructor() : SensorEventListener {
         svD[at] = svDAt
         svMaxMin[at] = sv(xMaxMin[at], yMaxMin[at], zMaxMin[at])
         z2[at] = (svTOTAt * svTOTAt - svDAt * svDAt - G * G) / (2.0 * G)
+
         val svTOTBefore: Double = at(svTOT, at - 1, N)
         falling[at] = 0.0
         if (FALLING_WAIST_SV_TOT <= svTOTBefore && svTOTAt < FALLING_WAIST_SV_TOT) {
             timeoutFalling = SPAN_FALLING
             falling[at] = 1.0
         }
+
         impact[at] = 0.0
-        if (-1 < timeoutFalling) {
-            val svMaxMinAt: Double = svMaxMin[at]
-            val z2At: Double = z2[at]
+        if (timeoutFalling > -1) {
+            val svMaxMinAt = svMaxMin[at]
+            val z2At = z2[at]
             if (IMPACT_WAIST_SV_TOT <= svTOTAt || IMPACT_WAIST_SV_D <= svDAt ||
                 IMPACT_WAIST_SV_MAX_MIN <= svMaxMinAt || IMPACT_WAIST_Z_2 <= z2At
             ) {
@@ -229,25 +237,23 @@ class Detector private constructor() : SensorEventListener {
                 impact[at] = 1.0
             }
         }
+
         lying[at] = 0.0
-        if (0 == timeoutImpact) {
-            var sum = 0.0
-            var count = 0.0
-            for (i: Int in 0 until SPAN_AVERAGING) {
-                val value: Double = at(zLPF, at - i, N)
-                if (!value.isNaN()) {
-                    sum += value
-                    count += 1.0
-                }
-            }
-            if (LYING_AVERAGE_Z_LPF < (sum / count)) {
+        if (timeoutImpact == 0) {
+            // Después del impacto: analizar inmovilidad
+            val svAvg = (0 until SPAN_AVERAGING).map {
+                at(svTOT, at - it, N)
+            }.filterNot { it.isNaN() }.average()
+
+            // Confirmar caída si quedó casi inmóvil
+            if (svAvg < 0.4) {
                 lying[at] = 1.0
                 val context = this.context
                 if (context != null) {
-                    Guardian.say(context, android.util.Log.WARN, TAG, "Detected a fall")
+                    Guardian.say(context, android.util.Log.WARN, TAG, "Detected a fall [svAvg=$svAvg]")
                     alert(context)
-                    val position = Positioning.singleton // Obtenemos el singleton
-                    val location = position?.getLastKnownLocation() // Método que deberías crear para obtener la ubicación
+                    val position = Positioning.singleton
+                    val location = position?.getLastKnownLocation()
 
                     ServerAdapter.reportFallEvent(
                         context,
@@ -259,6 +265,7 @@ class Detector private constructor() : SensorEventListener {
             }
         }
     }
+
 
     // Android sampling is irregular, thus the signal is (linearly) resampled at 50 Hz
     private fun resample(postTime: Long, postX: Double, postY: Double, postZ: Double) {

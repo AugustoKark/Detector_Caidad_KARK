@@ -20,8 +20,8 @@ class Upload internal constructor() {
         private var ipfs: IPFS? = null
 
         internal fun go(context: Context, root: String) {
-            val ipfs = ipfs
-            ipfs ?: return
+//            val ipfs = ipfs
+//            ipfs ?: return
             val zipped: Array<String>? = Storage.list(root, Storage.FILTER_ZIP)
             if (zipped != null && zipped.isNotEmpty()) {
                 Arrays.sort(zipped)
