@@ -128,6 +128,11 @@ class Detector private constructor() : SensorEventListener {
     private var anteTime: Long = 0
     private var regular: Long = 0
 
+
+    private var beforeFallOrientation: Triple<Double, Double, Double>? = null
+    private var afterFallOrientation: Triple<Double, Double, Double>? = null
+    private val ORIENTATION_THRESHOLD = 0.7
+
     private fun linear(before: Long, ante: Double, after: Long, post: Double, now: Long): Double {
         return ante + (post - ante) * (now - before).toDouble() / (after - before).toDouble()
     }
@@ -213,11 +218,14 @@ class Detector private constructor() : SensorEventListener {
         svMaxMin[at] = sv(xMaxMin[at], yMaxMin[at], zMaxMin[at])
         z2[at] = (svTOTAt * svTOTAt - svDAt * svDAt - G * G) / (2.0 * G)
         val svTOTBefore: Double = at(svTOT, at - 1, N)
+
         falling[at] = 0.0
         if (FALLING_WAIST_SV_TOT <= svTOTBefore && svTOTAt < FALLING_WAIST_SV_TOT) {
             timeoutFalling = SPAN_FALLING
             falling[at] = 1.0
+            captureOrientation(true) // Guardar orientación antes de la caída
         }
+
         impact[at] = 0.0
         if (-1 < timeoutFalling) {
             val svMaxMinAt: Double = svMaxMin[at]
@@ -229,26 +237,18 @@ class Detector private constructor() : SensorEventListener {
                 impact[at] = 1.0
             }
         }
+
         lying[at] = 0.0
         if (0 == timeoutImpact) {
-            var sum = 0.0
-            var count = 0.0
-            for (i: Int in 0 until SPAN_AVERAGING) {
-                val value: Double = at(zLPF, at - i, N)
-                if (!value.isNaN()) {
-                    sum += value
-                    count += 1.0
-                }
-            }
-            if (LYING_AVERAGE_Z_LPF < (sum / count)) {
+            captureOrientation(false) // Guardar orientación después de la caída
+            if (isOrientationChanged()) { // Confirmar caída por cambio de orientación
                 lying[at] = 1.0
                 val context = this.context
                 if (context != null) {
                     Guardian.say(context, android.util.Log.WARN, TAG, "Detected a fall")
                     alert(context)
-                    val position = Positioning.singleton // Obtenemos el singleton
-                    val location = position?.getLastKnownLocation() // Método que deberías crear para obtener la ubicación
-
+                    val position = Positioning.singleton
+                    val location = position?.getLastKnownLocation()
                     ServerAdapter.reportFallEvent(
                         context,
                         location?.latitude,
@@ -259,6 +259,7 @@ class Detector private constructor() : SensorEventListener {
             }
         }
     }
+
 
     // Android sampling is irregular, thus the signal is (linearly) resampled at 50 Hz
     private fun resample(postTime: Long, postX: Double, postY: Double, postZ: Double) {
@@ -317,5 +318,41 @@ class Detector private constructor() : SensorEventListener {
 
     private fun alert(context: Context) {
         Alarm.alert(context)
+    }
+
+    private fun captureOrientation(before: Boolean) {
+        var sumX = 0.0
+        var sumY = 0.0
+        var sumZ = 0.0
+        var count = 0.0
+        for (i in 0 until SPAN_AVERAGING) {
+            val xVal = at(xLPF, buffers.position - i, N)
+            val yVal = at(yLPF, buffers.position - i, N)
+            val zVal = at(zLPF, buffers.position - i, N)
+            if (!xVal.isNaN() && !yVal.isNaN() && !zVal.isNaN()) {
+                sumX += xVal
+                sumY += yVal
+                sumZ += zVal
+                count++
+            }
+        }
+        val orientation = Triple(sumX / count, sumY / count, sumZ / count)
+        if (before) {
+            beforeFallOrientation = orientation
+        } else {
+            afterFallOrientation = orientation
+        }
+    }
+
+    private fun isOrientationChanged(): Boolean {
+        val before = beforeFallOrientation
+        val after = afterFallOrientation
+        if (before == null || after == null) return false
+
+        val dx = Math.abs(before.first - after.first)
+        val dy = Math.abs(before.second - after.second)
+        val dz = Math.abs(before.third - after.third)
+
+        return (dx > ORIENTATION_THRESHOLD || dy > ORIENTATION_THRESHOLD || dz > ORIENTATION_THRESHOLD)
     }
 }
