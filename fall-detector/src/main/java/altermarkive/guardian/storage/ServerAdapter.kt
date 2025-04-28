@@ -26,6 +26,8 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.net.HttpURLConnection
 
+
+
 /**
  * Adaptador para enviar datos al servidor Python
  */
@@ -75,7 +77,10 @@ class ServerAdapter private constructor() {
                         if (responseCode == HttpURLConnection.HTTP_OK) {
                             Log.i(TAG, "Dispositivo registrado correctamente")
                         } else {
-                            Log.e(TAG, "Error al registrar dispositivo: $responseCode - $responseMessage")
+                            Log.e(
+                                TAG,
+                                "Error al registrar dispositivo: $responseCode - $responseMessage"
+                            )
                         }
                     }
                 } catch (e: Exception) {
@@ -84,7 +89,13 @@ class ServerAdapter private constructor() {
             }
         }
 
-        fun addAccelerometerReading(deviceId: String, timestamp: Long, x: Float, y: Float, z: Float) {
+        fun addAccelerometerReading(
+            deviceId: String,
+            timestamp: Long,
+            x: Float,
+            y: Float,
+            z: Float
+        ) {
             synchronized(accelerometerQueue) {
                 accelerometerQueue.add(AccelerometerReading(deviceId, timestamp, x, y, z))
 
@@ -144,7 +155,12 @@ class ServerAdapter private constructor() {
             }
         }
 
-        fun reportFallEvent(context: Context, latitude: Double?, longitude: Double?, batteryLevel: Int) {
+        fun reportFallEvent(
+            context: Context,
+            latitude: Double?,
+            longitude: Double?,
+            batteryLevel: Int
+        ) {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
                     val deviceId = Report.id(context)
@@ -208,7 +224,10 @@ class ServerAdapter private constructor() {
                         if (response.isSuccessful) {
                             Log.i(TAG, "Archivo subido correctamente: ${file.name}")
                         } else {
-                            Log.e(TAG, "Error al subir archivo: ${response.code} - ${response.message}")
+                            Log.e(
+                                TAG,
+                                "Error al subir archivo: ${response.code} - ${response.message}"
+                            )
                         }
                     }
                 } catch (e: Exception) {
@@ -227,6 +246,56 @@ class ServerAdapter private constructor() {
 
             // Registrar el dispositivo al iniciar
             registerDevice(context)
+        }
+
+        // Añadir este método a la clase ServerAdapter
+
+        /**
+         * Reporta un evento de cancelación de alerta de caída al servidor
+         * Útil para análisis de falsos positivos y mejora del algoritmo
+         */
+        /**
+         * Reporta un evento de cancelación de alerta de caída al servidor
+         * Útil para análisis de falsos positivos y mejora del algoritmo
+         */
+        /**
+         * Reporta un evento de cancelación de alerta de caída al servidor
+         * Útil para análisis de falsos positivos y mejora del algoritmo
+         */
+        fun reportFallAlertCancelled(
+            context: Context,
+            latitude: Double?,
+            longitude: Double?,
+            batteryLevel: Int
+        ) {
+            try {
+                // Obtener el ID del dispositivo
+                val deviceId = Report.id(context)
+
+                // Crear el objeto JSON con la información
+                val eventData = JSONObject().apply {
+                    put("device_id", deviceId)
+                    put("event_type", "fall_alert_cancelled")
+                    put("timestamp", System.currentTimeMillis())
+                    put("battery_level", batteryLevel)
+
+                    // Añadir coordenadas si están disponibles
+                    if (latitude != null && longitude != null) {
+                        put("latitude", latitude)
+                        put("longitude", longitude)
+                    }
+                }
+
+                // Aquí puedes usar el mismo mecanismo que ya tengas implementado para enviar datos al servidor
+                // Por ejemplo, si tienes un método en ServerAdapter para reportar eventos, puedes usarlo aquí
+                Log.i("ServerAdapter", "Fall alert cancelled: $eventData")
+
+                // Si tienes una cola de eventos o un método específico para enviar datos, úsalo aquí
+                // Ejemplo: queueEventData(context, "fall_alert_cancelled", eventData)
+
+            } catch (e: Exception) {
+                Log.e("ServerAdapter", "Error reporting fall alert cancellation: ${e.message}")
+            }
         }
     }
 

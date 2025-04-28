@@ -1,78 +1,143 @@
 package altermarkive.guardian.alerts
 
-import altermarkive.guardian.R
+import altermarkive.guardian.utils.Log
 import altermarkive.guardian.core.Guardian
 import android.content.Context
-import android.media.AudioAttributes
 import android.media.AudioManager
-import android.media.SoundPool
+import android.media.MediaPlayer
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import androidx.annotation.RequiresApi
 
-class Alarm private constructor(val context: Guardian) {
-    private var pool: SoundPool
-    private var id: Int
+class Alarm private constructor(private val context: Guardian) {
+    private var player: MediaPlayer? = null
+    private var finished: Boolean = true
 
-    init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val audioAttributes: AudioAttributes = AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                .setUsage(AudioAttributes.USAGE_ALARM)
-                .build()
-            pool = SoundPool.Builder()
-                .setMaxStreams(5)
-                .setAudioAttributes(audioAttributes)
-                .build()
-        } else {
-            @Suppress("DEPRECATION")
-            pool = SoundPool(5, AudioManager.STREAM_ALARM, 0)
+    private fun stopPlayerIfNeeded() {
+        player?.let {
+            try {
+                if (it.isPlaying) {
+                    it.stop()
+                }
+                it.release()
+            } catch (ignored: Exception) {
+            }
+            player = null
         }
-        id = pool.load(context.applicationContext, R.raw.alarm, 1)
+    }
+
+    internal fun sound(context: Context) {
+        synchronized(this) {
+            if (!finished) {
+                stopPlayerIfNeeded()
+            }
+            finished = false
+            try {
+                // Maximizamos el volumen
+                val manager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                manager.setStreamVolume(
+                    AudioManager.STREAM_ALARM,
+                    manager.getStreamMaxVolume(AudioManager.STREAM_ALARM),
+                    0
+                )
+                val ringtone: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                player = MediaPlayer.create(context, ringtone)
+                player?.isLooping = true
+                player?.start()
+                // Detenemos después de 5 minutos si no se ha detenido antes
+                Handler(Looper.getMainLooper()).postDelayed({
+                    try {
+                        stopPlayerIfNeeded()
+                        finished = true
+                    } catch (ignored: Exception) {
+                    }
+                }, (5 * 60 * 1000).toLong())
+            } catch (exception: Exception) {
+                Log.e(TAG, "Alert sounder failed: ${exception.message}")
+            }
+        }
+    }
+
+    internal fun stop() {
+        synchronized(this) {
+            stopPlayerIfNeeded()
+            finished = true
+        }
     }
 
     companion object {
+        private val TAG = Alarm::class.java.name
         private var singleton: Alarm? = null
 
-        internal fun instance(context: Guardian): Alarm {
-            var singleton = singleton
-            if (singleton == null) {
-                singleton = Alarm(context)
-                Companion.singleton = singleton
+        fun instance(guardian: Guardian): Alarm {
+            val existing = singleton
+            if (existing != null) {
+                return existing
             }
-            return singleton
+            val created = Alarm(guardian)
+            singleton = created
+            return created
         }
 
-        internal fun siren(context: Context) {
-            loudest(context, AudioManager.STREAM_ALARM)
-            val singleton = singleton
-            if (singleton != null) {
-                val pool = singleton.pool
-                pool.play(singleton.id, 1.0f, 1.0f, 1, 3, 1.0f)
-            }
-        }
+        // Este método se llamará desde FallAlertActivity cuando la cuenta regresiva termine
+        @RequiresApi(Build.VERSION_CODES.M)
+        fun alert(context: Context) {
+            // Primero enviamos SMS
+            val recipient = Contact[context]
+            if (recipient != null && recipient.isNotBlank()) {
+                Messenger.sms(context, recipient, "¡ALERTA! Se ha detectado una posible caída.")
 
-        internal fun loudest(context: Context, stream: Int) {
-            val manager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            val loudest = manager.getStreamMaxVolume(stream)
-            manager.setStreamVolume(stream, loudest, 0)
-        }
+                // Reproducimos sonido de alarma
+                siren(context)
 
-        internal fun alert(context: Context) {
-            val contact = Contact[context]
-            if (contact != null && "" != contact) {
-                Guardian.say(
-                    context,
-                    android.util.Log.WARN,
-                    TAG,
-                    "Alerting the emergency phone number ($contact)"
-                )
-                Messenger.sms(context, Contact[context], "Fall Detected")
-                Telephony.call(context, contact)
+                // Y realizamos la llamada después de un breve retraso
+                Handler(Looper.getMainLooper()).postDelayed({
+                    try {
+                        Messenger.call(context, recipient)
+                    } catch (exception: Exception) {
+                        Log.e(TAG, "Could not make an emergency call: ${exception.message}")
+                    }
+                }, 3000)  // Esperar 3 segundos antes de realizar la llamada
             } else {
-                Guardian.say(context, android.util.Log.ERROR, TAG, "ERROR: Emergency phone number not set")
+                Log.e(TAG, "No recipient specified for alert")
+                // Aún así reproducimos el sonido de alarma
                 siren(context)
             }
         }
 
-        private val TAG: String = Alarm::class.java.simpleName
+        // Nueva implementación para evitar referencia circular
+        fun siren(context: Context) {
+            val alarm = if (context is Guardian) {
+                instance(context)
+            } else {
+                val app = context.applicationContext
+                if (app is Guardian) {
+                    instance(app)
+                } else {
+                    Log.e(TAG, "Could not get Guardian instance")
+                    return
+                }
+            }
+            alarm.sound(context)
+        }
+
+        /**
+         * Establece el volumen de un stream de audio al máximo
+         */
+        fun loudest(context: Context, streamType: Int) {
+            try {
+                val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                audioManager.setStreamVolume(
+                    streamType,
+                    audioManager.getStreamMaxVolume(streamType),
+                    0
+                )
+            } catch (exception: Exception) {
+                Log.e(TAG, "Failed to set volume to maximum: ${exception.message}")
+            }
+        }
     }
 }

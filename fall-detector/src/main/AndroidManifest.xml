@@ -4,6 +4,9 @@
     package="altermarkive.guardian">
 
     <!-- Using network location provider -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Using GPS location provider -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -38,6 +41,11 @@
     <!-- Using the forced wake state -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+
+
 
 
     <application
@@ -57,6 +65,14 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".alerts.FallAlertActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:showOnLockScreen="true"
+            android:screenOrientation="portrait"
+            android:turnScreenOn="true">
         </activity>
         <activity
             android:name="altermarkive.guardian.alerts.Contact"
@@ -85,7 +101,8 @@
             android:enabled="true"
             android:exported="true"
             android:label="SMS Responder"
-            android:permission="android.permission.BROADCAST_SMS">
+            android:permission="android.permission.BROADCAST_SMS"
+            tools:ignore="Instantiatable">
             <intent-filter android:priority="2147483647">
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>

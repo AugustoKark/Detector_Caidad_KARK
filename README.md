@@ -1,39 +1,32 @@
-# Experimental Fall Detector Android App
+# Aplicación Experimental de Detección de Caídas para Android
 
-## INTRODUCTION
+## INTRODUCCIÓN
 
-When a fall is detected the app will send an SMS to the configured emergency phone number.
+Cuando se detecta una caída, la aplicación enviará un SMS al número de emergencia configurado.
 
-## USER GUIDE
+## GUÍA DEL USUARIO
 
-* Make sure to configure the emergency phone number for the app to call automatically when a fall is detected.
-* Calls from that number will be answered automatically.
-* An SMS from that number with the word POSITION in the content will be replied to automatically with the geographical position (if available).
-* If the SMS contains the word ALARM instead, it will play back an alarm sound.
-* The app will start automatically when the phone is turned on.
-* For optimal performance (to reduce the number of false alarms and the number of undetected falls) carry the device close to your waist (a trouser pocket, a belt clip, etc.).
-* Keep your device charged at all times.
+* Asegúrate de configurar el número de teléfono de emergencia para que la aplicación llame automáticamente cuando se detecte una caída.
+* Las llamadas de ese número serán contestadas automáticamente.
+* Un SMS de ese número con la palabra POSICIÓN en el contenido será respondido automáticamente con la posición geográfica (si está disponible).
+* Si el SMS contiene la palabra ALARMA, en su lugar, reproducirá un sonido de alarma.
+* La aplicación se iniciará automáticamente cuando el teléfono se encienda.
+* Para un rendimiento óptimo (para reducir el número de falsas alarmas y el número de caídas no detectadas), lleva el dispositivo cerca de tu cintura (un bolsillo del pantalón, un clip para el cinturón, etc.).
+* Mantén tu dispositivo cargado en todo momento.
 
+## CAPTURAS DE PANTALLA
 
-## SCREENSHOTS
-
- EULA screen (MIT license)     | About view (with instructions & emergency button) | Sensor & detection signals view (pausable & zoomable) | Settings view (to set emergency number & data collection) | Emergency number editor (with contact book lookup)
+ Pantalla de EULA (licencia MIT) | Vista de información (con instrucciones y botón de emergencia) | Vista de señales del sensor y detección (pausables y ampliables) | Vista de configuración (para establecer el número de emergencia y la recopilación de datos) | Editor de número de emergencia (con búsqueda en la agenda de contactos)
 :-----------------------------:|:-------------------------------------------------:|:-----------------------------------------------------:|:---------------------------------------------------------:|:--------------------------------------------------:
- ![Signals](doc/screenshot.2.jpg)                      | ![Settings](doc/screenshot.3.jpg)                         | ![Contact](doc/screenshot.4.jpg)
+ ![Señales](doc/screenshot.2.jpg)                      | ![Configuración](doc/screenshot.3.jpg)                         | ![Contacto](doc/screenshot.4.jpg)
 
-## CREDITS
+## CRÉDITOS
 
-The fall detection is based upon the algorithm number 2 described in
+La detección de caídas se basa en el algoritmo número 2 descrito en
 *"Comparison of low-complexity fall detection algorithms for body attached accelerometers"*
-authored by Maarit Kangas, Antti Konttila, Per Lindgren, Ilkka Winblad, Timo Jamsa
-and published in Gait & Posture 28 (2008) by Elsevier (search for the paper [here](https://scholar.google.nl/scholar?hl=en&q=Comparison+of+low-complexity+fall+detection+algorithms+for+body+attached+accelerometers+Kangas+Konttila+Lindgren+Winblad+Jamsa))
+autores: Maarit Kangas, Antti Konttila, Per Lindgren, Ilkka Winblad, Timo Jamsa
+y publicado en Gait & Posture 28 (2008) por Elsevier (busca el artículo [aquí](https://scholar.google.nl/scholar?hl=en&q=Comparison+of+low-complexity+fall+detection+algorithms+for+body+attached+accelerometers+Kangas+Konttila+Lindgren+Winblad+Jamsa))
 
-![Algorithm](doc/GuardianFallDetector.png)
+![Algoritmo](doc/GuardianFallDetector.png)
 
-## 2021 UPDATE
-
-The 2010 app was written in Java & C (both integrated via JNI and Android NDK) but I decided to port it to
-Kotlin to learn the language on a practical example. A couple of other aspects had to be updated too,
-including: permissions, image assets, deprecated APIs, theme, action layouts, Gradle files, etc.
-
-The app also allows to collect & share sensor data on IPFS for research purposes (it uses [IPFS HTTP client](https://github.com/ipfs-shipyard/java-ipfs-http-client), rather than [a full node](https://github.com/textileio/android-ipfs-lite)).
+#

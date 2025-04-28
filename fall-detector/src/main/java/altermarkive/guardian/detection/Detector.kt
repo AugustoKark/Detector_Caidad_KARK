@@ -5,6 +5,7 @@ package altermarkive.guardian.detection
 
 import altermarkive.guardian.alerts.Alarm
 import altermarkive.guardian.BuildConfig
+import altermarkive.guardian.alerts.FallAlertActivity
 import altermarkive.guardian.utils.Log
 import altermarkive.guardian.core.Guardian
 import altermarkive.guardian.sensors.Battery
@@ -246,15 +247,16 @@ class Detector private constructor() : SensorEventListener {
                 val context = this.context
                 if (context != null) {
                     Guardian.say(context, android.util.Log.WARN, TAG, "Detected a fall")
-                    alert(context)
-                    val position = Positioning.singleton
-                    val location = position?.getLastKnownLocation()
-                    ServerAdapter.reportFallEvent(
-                        context,
-                        location?.latitude,
-                        location?.longitude,
-                        Battery.level(context)
-                    )
+//                    alert(context)
+//                    val position = Positioning.singleton
+//                    val location = position?.getLastKnownLocation()
+//                    ServerAdapter.reportFallEvent(
+//                        context,
+//                        location?.latitude,
+//                        location?.longitude,
+//                        Battery.level(context)
+//                    )
+                    showFallAlert(context)
                 }
             }
         }
@@ -344,7 +346,7 @@ class Detector private constructor() : SensorEventListener {
         }
     }
 
-    private fun isOrientationChanged(): Boolean {
+    internal fun isOrientationChanged(): Boolean {
         val before = beforeFallOrientation
         val after = afterFallOrientation
         if (before == null || after == null) return false
@@ -354,5 +356,11 @@ class Detector private constructor() : SensorEventListener {
         val dz = Math.abs(before.third - after.third)
 
         return (dx > ORIENTATION_THRESHOLD || dy > ORIENTATION_THRESHOLD || dz > ORIENTATION_THRESHOLD)
+    }
+
+    private fun showFallAlert(context: Context) {
+        // Inicia la Activity de alerta por caída
+        FallAlertActivity.start(context)
+
     }
 }

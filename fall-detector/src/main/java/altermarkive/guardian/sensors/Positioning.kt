@@ -113,7 +113,7 @@ class Positioning private constructor(private val context: Guardian) : LocationL
                     message =
                         "Battery: $battery % Location ($time): $lat,$lon ~$accuracy m ^$altitude m $bearing deg $speed km/h http://maps.google.com/?q=${lat},${lon}"
                 }
-                Messenger.sms(context, Contact[context], message)
+                Contact[context]?.let { Messenger.sms(context, it, message) }
                 reset(METERS_10, MINUTES_10)
                 replied = true
             }

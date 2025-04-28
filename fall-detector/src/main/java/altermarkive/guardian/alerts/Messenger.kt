@@ -1,87 +1,102 @@
 package altermarkive.guardian.alerts
 
-import altermarkive.guardian.core.Guardian
-import altermarkive.guardian.sensors.Positioning
-import android.Manifest
-import android.content.BroadcastReceiver
+import altermarkive.guardian.utils.Log
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
-import android.provider.Telephony
 import android.telephony.SmsManager
-import android.telephony.SmsMessage
-import androidx.core.content.ContextCompat
-import java.util.Locale
+import android.widget.Toast
 
-class Messenger : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        val action = intent.action
-        if (Telephony.Sms.Intents.SMS_RECEIVED_ACTION == action) {
-            val bundle = intent.extras
-            if (bundle == null) {
-                Guardian.say(context, android.util.Log.WARN, TAG, "Received an SMS broadcast without extras")
+object Messenger {
+    private val TAG = Messenger::class.java.name
+
+    /**
+     * Envía un SMS al contacto especificado
+     * @param context Contexto de la aplicación
+     * @param recipient Número de teléfono del destinatario
+     * @param message Mensaje a enviar
+     */
+    fun sms(context: Context, recipient: String, message: String) {
+        try {
+            if (recipient.isNotBlank()) {
+                Log.i(TAG, "Sending SMS to $recipient: $message")
+
+                // Para API 30 y anteriores, usar el método tradicional
+                @Suppress("DEPRECATION")
+                val smsManager = SmsManager.getDefault()
+                smsManager.sendTextMessage(recipient, null, message, null, null)
+
+                Toast.makeText(
+                    context,
+                    "Se ha enviado un SMS de emergencia",
+                    Toast.LENGTH_LONG
+                ).show()
             } else {
-                val messages = bundle["pdus"] as Array<*>
-                val message = arrayOfNulls<SmsMessage>(
-                    messages.size
-                )
-                for (i in messages.indices) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        val format = bundle.getString("format")
-                        message[i] = SmsMessage.createFromPdu(messages[i] as ByteArray, format)
-                    } else {
-                        @Suppress("DEPRECATION")
-                        message[i] = SmsMessage.createFromPdu(messages[i] as ByteArray)
-                    }
-                }
-                if (message.isNotEmpty()) {
-                    val message0 = message[0]
-                    if (message0 == null) {
-                        Guardian.say(context, android.util.Log.WARN, TAG, "Received an SMS without content")
-                        return
-                    }
-                    var contact = message0.originatingAddress
-                    val content = message0.messageBody.uppercase(Locale.US)
-                    val items = content.split(";").toTypedArray()
-                    if (items.size > 1) {
-                        contact = items[1]
-                    }
-                    if (Contact.check(context, contact)) {
-                        var prevent = false
-                        if (content.contains("POSITION")) {
-                            Positioning.singleton?.trigger()
-                            prevent = true
-                        }
-                        if (content.contains("ALARM")) {
-                            Alarm.siren(context)
-                            prevent = true
-                        }
-                        if (prevent) {
-                            abortBroadcast()
-                        }
-                    }
-                } else {
-                    Guardian.say(context, android.util.Log.WARN, TAG, "Received empty SMS")
-                }
+                Log.e(TAG, "No recipient specified for SMS")
+                Toast.makeText(
+                    context,
+                    "Error: No se ha configurado un contacto de emergencia",
+                    Toast.LENGTH_LONG
+                ).show()
             }
+        } catch (exception: Exception) {
+            Log.e(TAG, "Failed to send SMS: ${exception.message}")
+            Toast.makeText(
+                context,
+                "Error al enviar SMS: ${exception.message}",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
-    companion object {
-        fun sms(context: Context, contact: String?, message: String) {
-            if (ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.SEND_SMS
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                val manager = SmsManager.getDefault()
-                manager.sendTextMessage(contact, null, message, null, null)
-            } else {
-                Guardian.say(context, android.util.Log.ERROR, TAG, "ERROR: No permission to send an SMS")
-            }
-        }
+    /**
+     * Realiza una llamada al contacto especificado
+     * @param context Contexto de la aplicación
+     * @param recipient Número de teléfono del destinatario
+     */
+    fun call(context: Context, recipient: String) {
+        try {
+            if (recipient.isNotBlank()) {
+                Log.i(TAG, "Making emergency call to $recipient")
 
-        private val TAG: String = Messenger::class.java.simpleName
+                // Crear un intent para llamar
+                val callIntent = Intent(Intent.ACTION_CALL)
+                callIntent.data = Uri.parse("tel:$recipient")
+                callIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+
+                // Verificar si se puede realizar la llamada
+                if (callIntent.resolveActivity(context.packageManager) != null) {
+                    context.startActivity(callIntent)
+
+                    Toast.makeText(
+                        context,
+                        "Realizando llamada de emergencia",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Log.e(TAG, "No activity found to handle call intent")
+                    Toast.makeText(
+                        context,
+                        "Error: No se puede realizar la llamada",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } else {
+                Log.e(TAG, "No recipient specified for call")
+                Toast.makeText(
+                    context,
+                    "Error: No se ha configurado un contacto de emergencia",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        } catch (exception: Exception) {
+            Log.e(TAG, "Failed to make call: ${exception.message}")
+            Toast.makeText(
+                context,
+                "Error al realizar llamada: ${exception.message}",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
 }
