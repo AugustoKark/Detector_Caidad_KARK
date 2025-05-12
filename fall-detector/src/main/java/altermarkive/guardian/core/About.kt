@@ -13,10 +13,9 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.util.Log
-import android.webkit.WebView
-import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 
 class About : Fragment(), View.OnClickListener {
     private var binding: View? = null
@@ -28,10 +27,15 @@ class About : Fragment(), View.OnClickListener {
     ): View? {
         val binding = inflater.inflate(R.layout.about, container, false)
         this.binding = binding
-        val web = binding.findViewById<View>(R.id.information) as WebView
-        web.loadUrl("file:///android_asset/about.html")
-        val emergency = binding.findViewById<View>(R.id.emergency) as Button
+
+        // Configurar versión de la app
+        val versionText = binding.findViewById<TextView>(R.id.app_version)
+        versionText.text = "Versión ${getAppVersion()}"
+
+        // Configurar botón de emergencia
+        val emergency = binding.findViewById<ExtendedFloatingActionButton>(R.id.emergency)
         emergency.setOnClickListener(this)
+
         return binding
     }
 
@@ -50,14 +54,14 @@ class About : Fragment(), View.OnClickListener {
         val statusText: String
         val statusColor: Int
         if (permitted(request)) {
-            statusText = "Permissions: Granted"
-            statusColor = Color.GREEN
+            statusText = "Guardian está activo"
+            statusColor = ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark)
         } else {
-            statusText = "Permissions: Missing"
+            statusText = "Permisos requeridos"
             statusColor = Color.RED
         }
         val binding = this.binding ?: return
-        val status = binding.findViewById<View>(R.id.status) as TextView
+        val status = binding.findViewById<TextView>(R.id.status)
         activity?.runOnUiThread {
             status.text = statusText
             status.setTextColor(statusColor)
@@ -96,11 +100,21 @@ class About : Fragment(), View.OnClickListener {
                     requireActivity().applicationContext,
                     Log.ERROR,
                     TAG,
-                    "ERROR: Permissions were not granted"
+                    "ERROR: Permisos no otorgados"
                 )
             }
             refreshPermissions(false)
         }
+
+    private fun getAppVersion(): String {
+        return try {
+            requireContext().packageManager
+                .getPackageInfo(requireContext().packageName, 0)
+                .versionName
+        } catch (e: Exception) {
+            "1.0.0"
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

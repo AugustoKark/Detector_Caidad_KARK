@@ -20,7 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 
 class FallAlertActivity : AppCompatActivity() {
     private val TAG = "FallAlertActivity"
-    private var countdownSeconds = 30 // Tiempo de cuenta regresiva
+    private var countdownSeconds: Int = 30 // Valor por defecto
     private var countdownTimer: CountDownTimer? = null
     private var isAlertCancelled = false
     private var countdownMediaPlayer: MediaPlayer? = null
@@ -38,6 +38,11 @@ class FallAlertActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+        val prefs = getSharedPreferences("guardian_prefs", Context.MODE_PRIVATE)
+        countdownSeconds = prefs.getInt("fall_detection_delay", 30) // 30 es el valor por defecto
+
 
         // Configurar la pantalla para emergencia - debe hacerse antes de setContentView
         setupScreenForEmergency()

@@ -24,10 +24,18 @@ class Main : AppCompatActivity() {
         val dialog = Dialog(context)
         dialog.setContentView(R.layout.eula)
         dialog.setTitle("EULA")
-        val web = dialog.findViewById<View>(R.id.eula) as WebView
-        web.loadUrl("file:///android_asset/eula.html")
-        val accept = dialog.findViewById<View>(R.id.accept) as Button
-        accept.setOnClickListener { dialog.dismiss() }
+
+        // Buscar el botón con el ID correcto según tu layout
+        val acceptButton = dialog.findViewById<View>(R.id.continueButton) as com.google.android.material.button.MaterialButton
+        acceptButton.setOnClickListener {
+            // Cerrar el diálogo
+            dialog.dismiss()
+
+            // Navegar a la pestaña de Settings
+            val navView = findViewById<BottomNavigationView>(R.id.navigation)
+            navView.selectedItemId = R.id.settings
+        }
+
         val layout = WindowManager.LayoutParams()
         val window = dialog.window
         window ?: return
@@ -40,7 +48,6 @@ class Main : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        Detector.instance(this)
         val binding = MainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val navView: BottomNavigationView = binding.navigation
