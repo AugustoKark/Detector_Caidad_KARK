@@ -14,11 +14,6 @@ Cuando se detecta una caída, la aplicación enviará un SMS al número de emerg
 * Para un rendimiento óptimo (para reducir el número de falsas alarmas y el número de caídas no detectadas), lleva el dispositivo cerca de tu cintura (un bolsillo del pantalón, un clip para el cinturón, etc.).
 * Mantén tu dispositivo cargado en todo momento.
 
-## CAPTURAS DE PANTALLA
-
- Pantalla de EULA (licencia MIT) | Vista de información (con instrucciones y botón de emergencia) | Vista de señales del sensor y detección (pausables y ampliables) | Vista de configuración (para establecer el número de emergencia y la recopilación de datos) | Editor de número de emergencia (con búsqueda en la agenda de contactos)
-:-----------------------------:|:-------------------------------------------------:|:-----------------------------------------------------:|:---------------------------------------------------------:|:--------------------------------------------------:
- ![Señales](doc/screenshot.2.jpg)                      | ![Configuración](doc/screenshot.3.jpg)                         | ![Contacto](doc/screenshot.4.jpg)
 
 ## CRÉDITOS
 
@@ -29,4 +24,3 @@ y publicado en Gait & Posture 28 (2008) por Elsevier (busca el artículo [aquí]
 
 ![Algoritmo](doc/GuardianFallDetector.png)
 
-#
