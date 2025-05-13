@@ -1,6 +1,6 @@
 # Aplicación Experimental de Detección de Caídas para Android
 
-## INTRODUCCIÓN
+## INTRODUCCIÓN![WhatsApp Image 2025-05-13 at 18.27.00.jpeg](../../Downloads/WhatsApp%20Image%202025-05-13%20at%2018.27.00.jpeg![WhatsApp Image 2025-05-13 at 18.26.52.jpeg](../../Downloads/WhatsApp%20Image%202025-05-13%20at%2018.26.52.jpeg))
 
 Cuando se detecta una caída, la aplicación enviará un SMS al número de emergencia configurado.
 
@@ -14,6 +14,11 @@ Cuando se detecta una caída, la aplicación enviará un SMS al número de emerg
 * Para un rendimiento óptimo (para reducir el número de falsas alarmas y el número de caídas no detectadas), lleva el dispositivo cerca de tu cintura (un bolsillo del pantalón, un clip para el cinturón, etc.).
 * Mantén tu dispositivo cargado en todo momento.
 
+## SCREENSHOTS
+
+ COnfiguración    | About view (con instrucciones y botón de emergencia) | Sensores & Señales de detección (pausable) |                        Settings                          | Número de contacto de emergencia
+:-----------------------------:|:----------------------------------------------------:|:------------------------------------------:|:--------------------------------------------------------:|:--------------------------------------------------:
+ ![EULA](doc/screenshot.1.jpeg) |           ![About](doc/screenshot.1.jpeg)            |     ![Signals](doc/screenshot.2.jpeg)      |            ![Settings](doc/screenshot.3.jpeg)            | ![Contact](doc/screenshot.4.jpeg)
 
 
 
