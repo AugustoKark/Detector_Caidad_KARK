@@ -15,12 +15,5 @@ Cuando se detecta una caída, la aplicación enviará un SMS al número de emerg
 * Mantén tu dispositivo cargado en todo momento.
 
 
-## CRÉDITOS
 
-La detección de caídas se basa en el algoritmo número 2 descrito en
-*"Comparison of low-complexity fall detection algorithms for body attached accelerometers"*
-autores: Maarit Kangas, Antti Konttila, Per Lindgren, Ilkka Winblad, Timo Jamsa
-y publicado en Gait & Posture 28 (2008) por Elsevier (busca el artículo [aquí](https://scholar.google.nl/scholar?hl=en&q=Comparison+of+low-complexity+fall+detection+algorithms+for+body+attached+accelerometers+Kangas+Konttila+Lindgren+Winblad+Jamsa))
-
-![Algoritmo](doc/GuardianFallDetector.png)
 
