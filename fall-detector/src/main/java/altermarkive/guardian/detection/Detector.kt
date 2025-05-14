@@ -147,6 +147,15 @@ class Detector private constructor() : SensorEventListener {
     private var minAccelerationBeforePeak: Double = Double.MAX_VALUE
     private var consecutiveLowSVCount: Int = 0
 
+    // Variables nuevas para mejoras anti-falsos positivos
+    private var checkTimeStartTime: Long = 0
+    private var phoneRaisePattern: Boolean = false
+    private var smoothnessScore: Double = 0.0
+    private var verticalToHorizontalTransition: Boolean = false
+    private val recentOrientations = mutableListOf<Triple<Double, Double, Double>>()
+    private var jerkMagnitude: Double = 0.0
+    private var maxJerk: Double = 0.0
+
     // Enum para tipos de caída
     private enum class FallType {
         FORWARD, BACKWARD, LEFT, RIGHT, UNKNOWN
@@ -253,6 +262,8 @@ class Detector private constructor() : SensorEventListener {
         var zDrop = 0.0
         var xMin = 0.0
         var yMin = 0.0
+        var xAvg = 0.0
+        var yAvg = 0.0
 
         for (i in 0 until 25) { // 500ms de datos
             val idx = (at - i + N) % N
@@ -261,15 +272,40 @@ class Detector private constructor() : SensorEventListener {
             if (x[idx] < xMin) xMin = x[idx]
             if (y[idx] < yMin) yMin = y[idx]
             if (z[idx] < zDrop) zDrop = z[idx]
+            xAvg += x[idx]
+            yAvg += y[idx]
         }
+
+        xAvg /= 25
+        yAvg /= 25
+
+        // Umbrales ajustados para ser más sensibles
+        val lateralThreshold = 0.8  // Reducido de 1.2
+        val forwardBackwardThreshold = 0.8  // Reducido de 1.2
+
+        // Considerar tanto picos como promedios para mejor detección
+        val xMaxAbs = Math.max(abs(xPeak), abs(xMin))
+        val yMaxAbs = Math.max(abs(yPeak), abs(yMin))
 
         // Determinar tipo de caída basado en los patrones
         return when {
-            abs(xPeak) > 1.2 && abs(xPeak) > abs(yPeak) -> {
-                if (xPeak > 0) FallType.RIGHT else FallType.LEFT
+            xMaxAbs > lateralThreshold && xMaxAbs > yMaxAbs * 0.8 -> {
+                // Usar promedio para determinar dirección en caídas laterales
+                if (xAvg > 0) FallType.RIGHT else FallType.LEFT
             }
-            abs(yPeak) > 1.2 && abs(yPeak) > abs(xPeak) -> {
-                if (yPeak > 0) FallType.FORWARD else FallType.BACKWARD
+            yMaxAbs > forwardBackwardThreshold && yMaxAbs > xMaxAbs * 0.8 -> {
+                // Para caídas hacia atrás, el mínimo puede ser más significativo
+                if (yMin < -forwardBackwardThreshold) FallType.BACKWARD
+                else if (yPeak > forwardBackwardThreshold) FallType.FORWARD
+                else FallType.UNKNOWN
+            }
+            // Si hay movimiento significativo en ambos ejes, determinar por el dominante
+            xMaxAbs > 0.6 || yMaxAbs > 0.6 -> {
+                if (xMaxAbs > yMaxAbs) {
+                    if (xAvg > 0) FallType.RIGHT else FallType.LEFT
+                } else {
+                    if (yAvg < 0) FallType.BACKWARD else FallType.FORWARD
+                }
             }
             else -> FallType.UNKNOWN
         }
@@ -301,6 +337,132 @@ class Detector private constructor() : SensorEventListener {
         return isLateralFall
     }
 
+    private fun detectPhoneLookGesture(): Boolean {
+        // Verificar si es el patrón típico de mirar el teléfono
+        val at = buffers.position
+
+        // 1. Analizar los últimos 800ms
+        var yStartAvg = 0.0
+        var yEndAvg = 0.0
+        var yTransitionSmooth = true
+        var zEndAvg = 0.0
+
+        // Primeros 200ms (inicio del movimiento)
+        for (i in 35 until 40) { // 700-800ms atrás
+            val idx = (at - i + N) % N
+            yStartAvg += y[idx]
+        }
+        yStartAvg /= 5
+
+        // Últimos 200ms (final del movimiento)
+        for (i in 0 until 10) { // 0-200ms atrás
+            val idx = (at - i + N) % N
+            yEndAvg += y[idx]
+            zEndAvg += z[idx]
+        }
+        yEndAvg /= 10
+        zEndAvg /= 10
+
+        // 2. Verificar transición de vertical a horizontal
+        val isVerticalToHorizontal = abs(yStartAvg) > 0.8 && abs(yEndAvg) < 0.5 && zEndAvg > 0.6
+
+        // 3. Analizar la suavidad del movimiento
+        var smoothness = 0.0
+        var previousAccel = 0.0
+        for (i in 1 until 30) {
+            val idx = (at - i + N) % N
+            val currentAccel = sv(x[idx], y[idx], z[idx])
+            if (i > 1) {
+                smoothness += abs(currentAccel - previousAccel)
+            }
+            previousAccel = currentAccel
+        }
+        smoothness /= 28
+
+        // 4. Verificar que no hay impactos bruscos
+        var maxJerkLocal = 0.0
+        for (i in 1 until 30) {
+            val idx = (at - i + N) % N
+            val jerk = abs(svD[idx])
+            if (jerk > maxJerkLocal) maxJerkLocal = jerk
+        }
+
+        // 5. Verificar duración del movimiento (típicamente 600-1200ms)
+        val duration = System.currentTimeMillis() - fallStartTime
+        val isDurationTypical = duration > 600 && duration < 1200
+
+        // 6. Verificar patrón de aceleración característico
+        // Al levantar el teléfono, primero se acelera y luego se desacelera suavemente
+        var accelerationPattern = true
+        var peakFound = false
+        var peakIndex = -1
+        for (i in 5 until 35) {
+            val idx = (at - i + N) % N
+            val accel = sv(x[idx], y[idx], z[idx])
+            if (accel > 1.3 && !peakFound) {
+                peakFound = true
+                peakIndex = i
+            }
+            if (peakFound && i > peakIndex + 5 && accel > 1.3) {
+                accelerationPattern = false // No debería haber múltiples picos
+            }
+        }
+
+        // 7. Check rotación controlada (giroscopio si estuviera disponible, pero usando acelerómetro)
+        var rotationControl = true
+        for (i in 1 until 20) {
+            val idx = (at - i + N) % N
+            val xChange = abs(x[idx] - x[(idx - 1 + N) % N])
+            val yChange = abs(y[idx] - y[(idx - 1 + N) % N])
+            val zChange = abs(z[idx] - z[(idx - 1 + N) % N])
+
+            // Si hay cambios muy bruscos en múltiples ejes simultáneamente, no es controlado
+            if (xChange > 0.5 && yChange > 0.5 && zChange > 0.5) {
+                rotationControl = false
+            }
+        }
+
+        val isPhoneLookGesture = isVerticalToHorizontal &&
+                smoothness < 0.3 &&
+                maxJerkLocal < 1.0 &&
+                isDurationTypical &&
+                accelerationPattern &&
+                rotationControl
+
+        if (isPhoneLookGesture) {
+            log(android.util.Log.DEBUG, "Phone look gesture detected - Y start: $yStartAvg, Y end: $yEndAvg, Z end: $zEndAvg, smoothness: $smoothness")
+        }
+
+        return isPhoneLookGesture
+    }
+
+    private fun checkChaosPattern(): Boolean {
+        val at = buffers.position
+        var chaosScore = 0.0
+
+        // Verificar cambios erráticos en múltiples ejes
+        for (i in 1 until 20) {
+            val idx = (at - i + N) % N
+            val prevIdx = (idx - 1 + N) % N
+
+            val dx = abs(x[idx] - x[prevIdx])
+            val dy = abs(y[idx] - y[prevIdx])
+            val dz = abs(z[idx] - z[prevIdx])
+
+            // Contar cambios significativos en múltiples ejes
+            var axesChanged = 0
+            if (dx > 0.3) axesChanged++
+            if (dy > 0.3) axesChanged++
+            if (dz > 0.3) axesChanged++
+
+            if (axesChanged >= 2) {
+                chaosScore += 1.0
+            }
+        }
+
+        return chaosScore > 5  // Al menos 5 instancias de cambios multi-eje
+    }
+
     private fun process() {
         val at: Int = buffers.position
         timeoutFalling = expire(timeoutFalling)
@@ -318,6 +480,10 @@ class Detector private constructor() : SensorEventListener {
         svTOT[at] = svTOTAt
         val svDAt: Double = sv(xHPF[at], yHPF[at], zHPF[at])
         svD[at] = svDAt
+        // Actualizar maxJerk
+        if (svDAt > maxJerk) {
+            maxJerk = svDAt
+        }
         svMaxMin[at] = sv(xMaxMin[at], yMaxMin[at], zMaxMin[at])
         z2[at] = (svTOTAt * svTOTAt - svDAt * svDAt - G * G) / (2.0 * G)
         val svTOTBefore: Double = at(svTOT, at - 1, N)
@@ -349,34 +515,42 @@ class Detector private constructor() : SensorEventListener {
             val fallType = detectFallType()
             val isLateralFall = fallType == FallType.LEFT || fallType == FallType.RIGHT
 
-            // Umbrales más sensibles
+            // Umbrales más sensibles para caídas hacia atrás y laterales
             val impactThreshold = when (fallType) {
-                FallType.LEFT, FallType.RIGHT -> 1.6
+                FallType.LEFT, FallType.RIGHT -> 1.4  // Reducido de 1.6
+                FallType.BACKWARD -> 1.3  // Más sensible para caídas hacia atrás
                 FallType.FORWARD -> 1.5
-                FallType.BACKWARD -> 1.7
                 else -> IMPACT_WAIST_SV_TOT
             }
 
             val svdThreshold = when (fallType) {
-                FallType.LEFT, FallType.RIGHT -> 1.3
+                FallType.LEFT, FallType.RIGHT -> 1.1  // Reducido de 1.3
+                FallType.BACKWARD -> 1.0  // Más sensible para caídas hacia atrás
                 FallType.FORWARD -> 1.2
                 else -> IMPACT_WAIST_SV_D
             }
 
-            // Verificación lateral
+            // Verificación lateral mejorada
             val lateralSpecificCheck = if (isLateralFall) {
-                abs(xMaxMin[at]) > 1.8
+                abs(xMaxMin[at]) > 1.5  // Reducido de 1.8
+            } else {
+                false
+            }
+
+            // Verificación específica para caídas hacia atrás
+            val backwardSpecificCheck = if (fallType == FallType.BACKWARD) {
+                abs(yMaxMin[at]) > 1.5 || (y[at] < -0.8 && svTOTAt > 1.3)
             } else {
                 false
             }
 
             if (impactThreshold <= svTOTAt || svdThreshold <= svDAt ||
                 IMPACT_WAIST_SV_MAX_MIN <= svMaxMinAt || IMPACT_WAIST_Z_2 <= z2At ||
-                lateralSpecificCheck) {
+                lateralSpecificCheck || backwardSpecificCheck) {
 
                 timeoutImpact = SPAN_IMPACT
                 impact[at] = 1.0
-                log(android.util.Log.DEBUG, "Impact detected - Type: $fallType, svTOT: $svTOTAt, svD: $svDAt")
+                log(android.util.Log.DEBUG, "Impact detected - Type: $fallType, svTOT: $svTOTAt, svD: $svDAt, Y: ${y[at]}")
             }
         }
 
@@ -395,24 +569,41 @@ class Detector private constructor() : SensorEventListener {
             val isHorizontal = isInHorizontalPosition()
             val isVertical = isInVerticalPosition()
             val fallType = detectFallType()
+            val isPhoneLook = detectPhoneLookGesture()
 
             // Verificar patrón específico del bolsillo
             val isPocketPattern = checkPocketPattern()
 
-            log(android.util.Log.DEBUG, "Fall check - Orient: $orientationChanged, Horiz: $isHorizontal, Vert: $isVertical, Type: $fallType, Peak: $peakAcceleration")
+            log(android.util.Log.DEBUG, "Fall check - Orient: $orientationChanged, Horiz: $isHorizontal, Vert: $isVertical, Type: $fallType, Peak: $peakAcceleration, PhoneLook: $isPhoneLook")
 
-            // No confirmar caída si el dispositivo terminó en posición vertical (bolsillo)
-            if (isVertical) {
-                log(android.util.Log.DEBUG, "Device ended vertical - likely pocket movement, not a fall")
+            // No confirmar caída si:
+            // 1. El dispositivo terminó en posición vertical (bolsillo)
+            // 2. Es el gesto de mirar el teléfono
+            // 3. Es patrón de bolsillo
+            if (isVertical || isPhoneLook || isPocketPattern) {
+                log(android.util.Log.DEBUG, "Not a fall - Vertical: $isVertical, PhoneLook: $isPhoneLook, Pocket: $isPocketPattern")
                 // Resetear variables
                 peakAcceleration = 0.0
                 consecutiveLowSVCount = 0
+                maxJerk = 0.0
                 return
             }
 
-            // Confirmar caída: cambio de orientación O posición horizontal
-            // Y no es patrón de bolsillo
-            if ((orientationChanged || isHorizontal) && !isPocketPattern) {
+            // Confirmar caída con criterios ajustados para diferentes tipos
+            val typeSpecificEvidence = when (fallType) {
+                FallType.BACKWARD -> peakAcceleration > 1.8 || maxJerk > 1.0
+                FallType.LEFT, FallType.RIGHT -> peakAcceleration > 1.9 || maxJerk > 1.1
+                FallType.FORWARD -> peakAcceleration > 2.0 || maxJerk > 1.2
+                else -> false
+            }
+
+            val hasStrongEvidence = (orientationChanged && peakAcceleration > 1.8) ||
+                    (orientationChanged && typeSpecificEvidence) ||
+                    (isHorizontal && maxJerk > 1.0) ||
+                    (isHorizontal && peakAcceleration > 1.7) ||
+                    (fallType != FallType.UNKNOWN && typeSpecificEvidence)
+
+            if (hasStrongEvidence) {
                 lying[at] = 1.0
                 lastFallAlertTime = currentTime
                 val context = this.context
@@ -420,16 +611,19 @@ class Detector private constructor() : SensorEventListener {
                     val fallReason = when {
                         isHorizontal -> "horizontal position"
                         fallType != FallType.UNKNOWN -> "fall type: $fallType"
-                        else -> "orientation change"
+                        else -> "orientation change with strong impact"
                     }
-                    Guardian.say(context, android.util.Log.WARN, TAG, "Detected a fall - Reason: $fallReason")
+                    Guardian.say(context, android.util.Log.WARN, TAG, "Detected a fall - Reason: $fallReason, Peak: $peakAcceleration")
                     showFallAlert(context)
                 }
+            } else {
+                log(android.util.Log.DEBUG, "Weak evidence for fall - skipping alert")
             }
 
             // Resetear variables
             peakAcceleration = 0.0
             consecutiveLowSVCount = 0
+            maxJerk = 0.0
         }
     }
 
@@ -540,18 +734,33 @@ class Detector private constructor() : SensorEventListener {
             return false
         }
 
+        // Primero verificar si es el gesto de mirar el teléfono
+        if (detectPhoneLookGesture()) {
+            log(android.util.Log.DEBUG, "Skipping orientation change - phone look gesture detected")
+            return false
+        }
+
         val dx = Math.abs(before.first - after.first)
         val dy = Math.abs(before.second - after.second)
         val dz = Math.abs(before.third - after.third)
+
+        // Verificar cambio específico de Y (vertical a horizontal)
+        val yVerticalToHorizontal = abs(before.second) > 0.8 && abs(after.second) < 0.5
+
+        // Si es transición vertical a horizontal controlada, es probablemente mirar el teléfono
+        if (yVerticalToHorizontal && peakAcceleration < 2.0) {
+            log(android.util.Log.DEBUG, "Vertical to horizontal transition with low peak - likely phone look")
+            return false
+        }
 
         // Detectar tipo de cambio
         val isLateralChange = dx > dy && dx > dz
         val isForwardBackwardChange = dy > dx && dy > dz
 
-        // Ajustar umbrales según el tipo de cambio
+        // Ajustar umbrales según el tipo de cambio - más sensibles
         val threshold = when {
-            isLateralChange -> 0.3  // Más sensible para caídas laterales
-            isForwardBackwardChange -> 0.4
+            isLateralChange -> 0.25  // Más sensible para laterales
+            isForwardBackwardChange -> 0.3  // Más sensible para atrás/adelante
             else -> ORIENTATION_THRESHOLD
         }
 
@@ -559,26 +768,30 @@ class Detector private constructor() : SensorEventListener {
         val angleChange = Math.abs(beforeAngle - afterAngle)
         val angleChangeDegrees = Math.toDegrees(angleChange)
 
-        // Ser más sensible a caídas laterales
+        // Umbrales de ángulo más sensibles para diferentes tipos
         val angleThreshold = when {
-            isLateralChange -> 20.0  // Menor umbral para caídas laterales
-            isForwardBackwardChange -> 25.0
+            isLateralChange -> 15.0  // Más sensible para caídas laterales
+            isForwardBackwardChange -> 20.0  // Más sensible para atrás/adelante
             else -> 30.0
         }
 
         // Calcular cambio total como magnitud vectorial
         val totalChange = Math.sqrt(dx*dx + dy*dy + dz*dz)
 
+        // Verificar características adicionales de una caída real
+        val hasImpactCharacteristics = peakAcceleration > 2.0 || maxJerk > 1.2  // Umbrales más sensibles
+        val hasChaosPattern = checkChaosPattern()
+
         // Log para debugging
         log(android.util.Log.DEBUG, "Orientation change - dx: $dx, dy: $dy, dz: $dz")
         log(android.util.Log.DEBUG, "Total change: $totalChange, Angle change: $angleChangeDegrees degrees")
-        log(android.util.Log.DEBUG, "Is lateral change: $isLateralChange")
+        log(android.util.Log.DEBUG, "Peak acceleration: $peakAcceleration, Has chaos: $hasChaosPattern")
 
-        return (dx > threshold ||
-                dy > threshold ||
-                dz > threshold ||
-                angleChangeDegrees > angleThreshold ||
-                totalChange > 0.7)  // Cambio total significativo (más sensible)
+        // Requiere menos evidencia para confirmar cambio de orientación en caídas
+        return (totalChange > 0.5 && angleChangeDegrees > angleThreshold) ||
+                (hasImpactCharacteristics && totalChange > 0.4) ||
+                (hasChaosPattern && totalChange > 0.3) ||
+                (angleChangeDegrees > angleThreshold * 1.5)  // Solo ángulo si es muy significativo
     }
 
     private fun isInVerticalPosition(): Boolean {
