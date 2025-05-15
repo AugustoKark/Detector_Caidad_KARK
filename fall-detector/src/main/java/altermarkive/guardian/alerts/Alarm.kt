@@ -2,6 +2,7 @@ package altermarkive.guardian.alerts
 
 import altermarkive.guardian.utils.Log
 import altermarkive.guardian.core.Guardian
+import altermarkive.guardian.sensors.Positioning
 import android.content.Context
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -88,7 +89,20 @@ class Alarm private constructor(private val context: Guardian) {
             // Primero enviamos SMS
             val recipient = Contact[context]
             if (recipient != null && recipient.isNotBlank()) {
-                Messenger.sms(context, recipient, "¡ALERTA! Se ha detectado una posible caída.")
+                // Obtenemos la ubicación actual
+                val position = Positioning.singleton
+                val location = position?.getLastKnownLocation()
+
+                // Creamos el mensaje con la ubicación si está disponible
+                val baseMessage = "¡ALERTA! Se ha detectado una posible caída."
+                val locationMessage = if (location != null) {
+                    val locationLink = "https://maps.google.com/?q=${location.latitude},${location.longitude}"
+                    "$baseMessage\nUbicación: $locationLink"
+                } else {
+                    baseMessage
+                }
+
+                Messenger.sms(context, recipient, locationMessage)
 
                 // Reproducimos sonido de alarma
                 siren(context)
