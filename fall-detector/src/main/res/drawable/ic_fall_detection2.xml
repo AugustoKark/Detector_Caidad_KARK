@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ic_fall_detection.xml - Guardar en res/drawable -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M17,4.5C17,3.1 15.9,2 14.5,2S12,3.1 12,4.5C12,5.9 13.1,7 14.5,7S17,5.9 17,4.5M15,8H14L9,22H11.9L14.2,15H14.3L15,8M13,10C9.2,10 6.2,12 5.2,15L3,14C4.3,10 8.3,7 13,7C17.7,7 21.7,10 23,14L20.8,15C19.8,12 16.8,10 13,10Z" />
+</vector>

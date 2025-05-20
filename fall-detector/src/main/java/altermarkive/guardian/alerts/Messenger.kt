@@ -24,8 +24,12 @@ object Messenger {
 
                 // Para API 30 y anteriores, usar el método tradicional
                 @Suppress("DEPRECATION")
+//                val smsManager = SmsManager.getDefault()
+//                smsManager.sendTextMessage(recipient, null, message, null, null)
                 val smsManager = SmsManager.getDefault()
-                smsManager.sendTextMessage(recipient, null, message, null, null)
+                val parts = smsManager.divideMessage(message)
+                smsManager.sendMultipartTextMessage(recipient, null, parts, null, null)
+
 
                 Toast.makeText(
                     context,

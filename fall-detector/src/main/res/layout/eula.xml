@@ -3,230 +3,221 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
-    android:padding="24dp">
+    android:background="#F9F9F9">
 
-    <!-- Icono de emergencia -->
-    <ImageView
-        android:id="@+id/emergencyIcon"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="48dp"
-        android:src="@drawable/ic_emergency"
-        app:tint="@color/red_emergency"
+    <!-- Cabecera con degradado -->
+    <View
+        android:id="@+id/headerBackground"
+        android:layout_width="0dp"
+        android:layout_height="180dp"
+        android:background="@drawable/header_gradient"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Título principal -->
+    <!-- Icono de documento legal -->
+    <ImageView
+        android:id="@+id/legalIcon"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/ic_document_legal"
+        app:tint="@android:color/white"
+        app:layout_constraintBottom_toBottomOf="@+id/headerBackground"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/headerBackground" />
+
+    <!-- Título del EULA -->
     <TextView
         android:id="@+id/titleText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="16dp"
         android:gravity="center"
-        android:text="Configuración de Emergencia"
+        android:text="Términos y Condiciones"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
         android:textColor="@android:color/black"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/emergencyIcon" />
+        app:layout_constraintTop_toBottomOf="@+id/headerBackground" />
 
-    <!-- Contenedor de información con scroll -->
-    <ScrollView
-        android:id="@+id/scrollView"
+    <!-- Subtítulo -->
+    <TextView
+        android:id="@+id/subtitleText"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/continueButton"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="Antes de comenzar, por favor lee y acepta nuestros términos de uso"
+        android:textColor="#666666"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/titleText">
+        app:layout_constraintTop_toBottomOf="@+id/titleText" />
 
-        <LinearLayout
+    <!-- Contenedor de información con scroll -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/termsCard"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="24dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:layout_constraintBottom_toTopOf="@+id/acceptButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/subtitleText">
+
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="match_parent">
 
-            <!-- Mensaje importante -->
-            <com.google.android.material.card.MaterialCardView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="#FFF3E0"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <LinearLayout
+                <!-- Sección 1: Detección de caídas -->
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:layout_marginEnd="12dp"
-                        android:src="@drawable/ic_warning"
-                        app:tint="#FF6B00" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="¡Importante! Guardian necesita un contacto de emergencia para funcionar correctamente."
-                        android:textColor="#E65100"
-                        android:textSize="14sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Explicación principal -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:lineSpacingExtra="4dp"
-                android:text="Guardian detecta automáticamente caídas y accidentes. Cuando esto ocurre, enviará una alerta con tu ubicación al contacto de emergencia que configures."
-                android:textColor="#333333"
-                android:textSize="16sp" />
-
-            <!-- Lista de características -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Características principales:"
-                android:textColor="@android:color/black"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <!-- Item 1 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="12dp"
-                    android:layout_marginTop="2dp"
-                    android:src="@drawable/ic_check_circle"
-                    app:tint="#4CAF50" />
+                    android:layout_marginBottom="12dp"
+                    android:text="1. Servicio de Detección de Caídas"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Detección automática de caídas usando sensores del dispositivo"
+                    android:layout_marginBottom="16dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="Guardian utiliza sensores del dispositivo para detectar posibles caídas. El servicio no puede garantizar la detección del 100% de las caídas, y puede haber falsos positivos. Al aceptar estos términos, reconoces que la app es una herramienta complementaria de seguridad."
                     android:textColor="#555555"
-                    android:textSize="15sp" />
-            </LinearLayout>
+                    android:textSize="14sp" />
 
-            <!-- Item 2 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="12dp"
-                    android:layout_marginTop="2dp"
-                    android:src="@drawable/ic_check_circle"
-                    app:tint="#4CAF50" />
+                <!-- Sección 2: Contactos de emergencia -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="2. Contactos de Emergencia"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Envío inmediato de SMS con tu ubicación GPS precisa"
+                    android:layout_marginBottom="16dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="Debes proporcionar al menos un contacto de emergencia válido. Confirmas que tienes el consentimiento de dicha persona para recibir alertas en caso de emergencia. Guardian enviará SMS automáticos con tu ubicación a este contacto cuando detecte una posible caída."
                     android:textColor="#555555"
-                    android:textSize="15sp" />
-            </LinearLayout>
+                    android:textSize="14sp" />
 
-            <!-- Item 3 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="12dp"
-                    android:layout_marginTop="2dp"
-                    android:src="@drawable/ic_check_circle"
-                    app:tint="#4CAF50" />
+                <!-- Sección 3: Permisos requeridos -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="3. Permisos Necesarios"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Posibilidad de cancelar alertas falsas antes del envío"
+                    android:layout_marginBottom="16dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="Para funcionar correctamente, Guardian necesita acceso a:\n\n• Sensores de movimiento\n• Contactos telefónicos\n• Ubicación del dispositivo\n• Envío de SMS\n• Ejecución en segundo plano\n\nEstos permisos se utilizan exclusivamente para los fines de detección y alerta."
                     android:textColor="#555555"
-                    android:textSize="15sp" />
-            </LinearLayout>
+                    android:textSize="14sp" />
 
-            <!-- Item 4 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginEnd="12dp"
-                    android:layout_marginTop="2dp"
-                    android:src="@drawable/ic_check_circle"
-                    app:tint="#4CAF50" />
+                <!-- Sección 4: Limitación de responsabilidad -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="4. Limitación de Responsabilidad"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Funciona en segundo plano para protección continua"
+                    android:layout_marginBottom="16dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="Guardian no es un sustituto de servicios médicos profesionales. En situaciones de emergencia médica, contacta directamente con servicios de emergencia. El desarrollador no se responsabiliza por fallos en la detección o alertas no enviadas debido a problemas técnicos, incluyendo batería baja, falta de cobertura móvil o fallos del sistema."
                     android:textColor="#555555"
-                    android:textSize="15sp" />
+                    android:textSize="14sp" />
+
+                <!-- Sección 5: Privacidad -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="5. Privacidad de Datos"
+                    android:textColor="@android:color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:lineSpacingExtra="4dp"
+                    android:text="Guardian no almacena ni comparte tu ubicación a menos que se detecte una caída. Tus datos de contactos de emergencia se almacenan únicamente en tu dispositivo. No recopilamos información personal con fines de marketing ni publicidad."
+                    android:textColor="#555555"
+                    android:textSize="14sp" />
+
+                <!-- Nota final -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="#FFF8E1"
+                    android:padding="12dp"
+                    android:text="Al hacer clic en 'Aceptar y Continuar', confirmas que has leído, entendido y aceptado estos términos y condiciones para el uso de Guardian."
+                    android:textColor="#BF360C"
+                    android:textSize="14sp"
+                    android:textStyle="italic" />
             </LinearLayout>
+        </ScrollView>
+    </com.google.android.material.card.MaterialCardView>
 
-            <!-- Nota de privacidad -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#F5F5F5"
-                android:padding="12dp"
-                android:text="Nota: Guardian solo accede a tu ubicación cuando detecta una emergencia. Tu privacidad está protegida."
-                android:textColor="#666666"
-                android:textSize="13sp" />
-
-           
-
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- Botón continuar -->
+    <!-- Botón de aceptar -->
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/continueButton"
+        android:id="@+id/acceptButton"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:text="Configurar Contacto de Emergencia"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="16dp"
+        android:text="Aceptar y Continuar"
         android:textAllCaps="false"
         android:textSize="16sp"
-        app:icon="@drawable/ic_arrow_forward"
-        app:iconGravity="end"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:cornerRadius="28dp"
+        app:layout_constraintBottom_toTopOf="@+id/declineText"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- Texto de rechazo -->
+    <TextView
+        android:id="@+id/declineText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:padding="8dp"
+        android:text="No acepto"
+        android:textColor="#666666"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

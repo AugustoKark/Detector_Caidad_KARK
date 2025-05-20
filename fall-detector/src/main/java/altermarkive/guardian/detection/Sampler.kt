@@ -48,7 +48,7 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
         Log.i(TAG, "Device: $device")
         val sensors = report.getJSONArray("sensors")
         for (i in 0 until sensors.length()) {
-            Log.i(TAG, "Sensor: ${sensors.get(i)}")
+//            Log.i(TAG, "Sensor: ${sensors.get(i)}")
         }
     }
 
@@ -100,9 +100,9 @@ class Sampler private constructor(private val guardian: Guardian) : SensorEventL
     }
 
     override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
-        Log.i(
-            TAG,
-            "Sensor type ${sensor.type} (${sensor.name}, ${sensor.vendor}) changed accuracy to: $accuracy"
-        )
+//        Log.i(
+//            TAG,
+//            "Sensor type ${sensor.type} (${sensor.name}, ${sensor.vendor}) changed accuracy to: $accuracy"
+//        )
     }
 }

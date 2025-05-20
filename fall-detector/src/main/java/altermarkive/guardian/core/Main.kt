@@ -26,7 +26,7 @@ class Main : AppCompatActivity() {
         dialog.setTitle("EULA")
 
         // Buscar el botón con el ID correcto según tu layout
-        val acceptButton = dialog.findViewById<View>(R.id.continueButton) as com.google.android.material.button.MaterialButton
+        val acceptButton = dialog.findViewById<View>(R.id.acceptButton) as com.google.android.material.button.MaterialButton
         acceptButton.setOnClickListener {
             // Cerrar el diálogo
             dialog.dismiss()
