@@ -20,4 +20,4 @@ Cuando se detecta una caída, la aplicación enviará un SMS al número de emerg
  ![EULA](doc/screenshot.1.jpeg) |           ![About](doc/screenshot.1.jpeg)            |     ![Signals](doc/screenshot.2.jpeg)      |            ![Settings](doc/screenshot.3.jpeg)            | ![Contact](doc/screenshot.4.jpeg)
 
 
-
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/AugustoKark/Detector_Caidad_KARK)
