@@ -1,0 +1,229 @@
+Propuesta de Backend
+Estructura de la Base de Datos
+# Tabla Devices (Dispositivos)
+- id (PK)
+- device_id (string, único)
+- name (string, opcional)
+- last_seen (timestamp)
+- battery_level (integer)
+- created_at (timestamp)
+
+# Tabla Users (para implementación futura)
+- id (PK)
+- name (string)
+- age (integer)
+- emergency_contact (string)
+- home_location_lat (float)
+- home_location_lon (float)
+- safe_zone_radius (integer, metros)
+- device_id (FK → Devices)
+- created_at (timestamp)
+
+# Tabla Accelerometer_Data
+- id (PK)
+- device_id (FK → Devices)
+- timestamp (timestamp)
+- x (float)
+- y (float)
+- z (float)
+- created_at (timestamp)
+
+# Tabla Events
+- id (PK)
+- device_id (FK → Devices)
+- event_type (string: 'fall', 'leave_safe_zone', 'return_safe_zone', 'low_battery', 'fall_alert_cancelled')
+- timestamp (timestamp)
+- latitude (float, nullable)
+- longitude (float, nullable)
+- battery_level (integer)
+- description (text, opcional)
+- resolved (boolean)
+- resolved_at (timestamp, nullable)
+- created_at (timestamp)
+
+# Tabla Movement_Stats (estadísticas agregadas)
+- id (PK)
+- device_id (FK → Devices)
+- hour_start (timestamp)
+- movement_level (float) # nivel de actividad calculado
+- steps_count (integer, opcional)
+- created_at (timestamp)
+
+Endpoints de la API
+Registro y Gestión de Dispositivos
+POST /api/devices/register
+- Registrar un nuevo dispositivo
+- Parámetros: device_id, user_name (opcional), user_age (opcional), emergency_contact (opcional)
+
+PUT /api/devices/{device_id}
+- Actualizar información de dispositivo
+- Parámetros: name, user_name, user_age, emergency_contact, etc.
+
+GET /api/devices/{device_id}
+- Obtener información de un dispositivo
+
+GET /api/devices
+- Listar todos los dispositivos registrados
+
+Datos del Acelerómetro
+POST /api/data/accelerometer
+- Enviar lotes de datos del acelerómetro
+- Parámetros: device_id, readings (array de datos con timestamp, x, y, z)
+
+GET /api/data/accelerometer/{device_id}
+- Obtener datos del acelerómetro filtrados por fecha
+- Parámetros de consulta: start_date, end_date, limit
+
+Eventos
+POST /api/events
+- Registrar un nuevo evento (caída, salida de zona segura, etc.)
+- Parámetros: device_id, event_type, timestamp, latitude, longitude, battery_level, description
+
+PUT /api/events/{event_id}/resolve
+- Marcar un evento como resuelto
+- Parámetros: resolved_notes (opcional)
+
+GET /api/events
+- Listar eventos (con filtros)
+- Parámetros de consulta: device_id, event_type, start_date, end_date, resolved
+
+GET /api/events/latest
+- Obtener los eventos más recientes
+- Parámetros de consulta: limit, device_id (opcional)
+Estadísticas
+GET /api/stats/movement/{device_id}
+- Obtener estadísticas de movimiento por hora/día
+- Parámetros de consulta: start_date, end_date, group_by (hour/day)
+
+GET /api/stats/events/{device_id}
+- Obtener estadísticas de eventos (conteo por tipo)
+- Parámetros de consulta: start_date, end_date
+
+Zonas Seguras (para implementación futura)
+POST /api/safe-zones
+- Crear una zona segura
+- Parámetros: device_id, center_lat, center_lon, radius, name
+
+PUT /api/safe-zones/{zone_id}
+- Actualizar una zona segura
+- Parámetros: center_lat, center_lon, radius, name
+
+GET /api/safe-zones/{device_id}
+- Obtener zonas seguras para un dispositivo
+Procesamiento de Datos
+Para manejar grandes volúmenes de datos de acelerómetro y calcular estadísticas de movimiento sin sobrecargar la base de datos:
+
+Procesamiento por lotes: Sigue con tu enfoque actual de enviar datos en lotes (BATCH_SIZE = 50)
+Agregación de datos: Implementa un proceso que:
+
+Calcule estadísticas de movimiento por hora
+Almacene estos datos agregados en la tabla Movement_Stats
+Archive o elimine datos crudos antiguos del acelerómetro para liberar espacio
+
+
+Detección de patrones: Implementa algoritmos para:
+
+Detectar niveles anormales de inactividad
+Calcular niveles de actividad diaria/semanal
+
+
+
+Dashboard para Cuidadores
+El dashboard mostraría:
+
+Vista General:
+
+Estado actual de todos los dispositivos monitoreados
+Eventos recientes no resueltos
+Nivel de batería de cada dispositivo
+
+
+Eventos:
+
+Mapa con ubicaciones de caídas recientes
+Historial de eventos filtrable por tipo y fecha
+Notificaciones para eventos nuevos
+
+
+Actividad:
+
+Gráfico de nivel de movimiento por hora/día
+Comparación con patrones normales
+Alertas de inactividad prolongada
+
+
+Ubicación (para implementación futura):
+
+Mapa con zona segura delimitada
+Histórico de entradas/salidas de la zona segura
+Última ubicación conocida
+
+
+
+Modificaciones Necesarias en el Cliente Android
+Para implementar estas funcionalidades, necesitarías actualizar tu ServerAdapter.kt:
+
+Agregar funciones para enviar actualización de ubicación periódica
+Implementar la lógica de verificación de zona segura
+Mejorar la gestión de errores y reintentos de conexión
+
+Ejemplo de Implementación del Backend
+Para implementar este backend, te recomendaría:
+
+Tecnología:
+
+Framework: FastAPI o Flask (Python)
+Base de datos: PostgreSQL
+Notificaciones: Firebase Cloud Messaging
+
+
+Estructura del proyecto:
+/backend
+  /app
+    /api
+      /routes
+        devices.py
+        data.py
+        events.py
+        stats.py
+        safe_zones.py
+    /models
+      device.py
+      accelerometer_data.py
+      event.py
+      movement_stat.py
+      safe_zone.py
+    /services
+      data_processor.py
+      notification_service.py
+      stats_calculator.py
+    /utils
+      location_utils.py
+      activity_calculator.py
+    main.py
+  /migrations
+  /tests
+  docker-compose.yml
+  requirements.txt
+
+  Jobs periódicos:
+
+  Cálculo de estadísticas de movimiento (cada hora)
+  Limpieza de datos antiguos (diario)
+  Verificación de inactividad inusual (cada hora)
+
+  Seguridad y Privacidad
+  Dado que estarás manejando datos sensibles de ubicación y salud:
+
+  Implementa autenticación JWT para todos los endpoints
+  Asegura las comunicaciones con HTTPS
+  Considera la encriptación de datos sensibles en la base de datos
+  Implementa políticas de retención de datos y eliminación automática de datos antiguos
+
+  Conclusión
+  Esta arquitectura te permitiría:
+
+  Monitorear caídas y enviar notificaciones inmediatas
+  Registrar y visualizar patrones de movimiento
+  Establecer zonas seguras (para implementación futura)
+  Escalar para manejar múltiples usuarios y dispositivos

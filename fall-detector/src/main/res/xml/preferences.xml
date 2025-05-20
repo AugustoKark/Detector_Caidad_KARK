@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Categoría de Contacto de Emergencia -->
+    <PreferenceCategory
+        android:title="Contacto de Emergencia"
+        android:icon="@drawable/ic_emergency"
+        app:iconSpaceReserved="true">
+
+        <Preference
+            android:key="@string/contact"
+            android:title="Configurar Contacto de Emergencia"
+            android:summary="Toca para seleccionar o cambiar el número que recibirá las alertas"
+            android:icon="@drawable/ic_phone_24"
+            app:iconSpaceReserved="true">
+            <intent android:action="altermarkive.guardian.Contact" />
+        </Preference>
+
+        <Preference
+            android:key="test_alert"
+            android:title="Probar Alerta"
+            android:summary="Envía una alerta de prueba a tu contacto de emergencia"
+            android:icon="@drawable/ic_test_alert"
+            app:iconSpaceReserved="true" />
+
+    </PreferenceCategory>
+
+    <!-- Categoría de Detección de Caídas -->
+    <PreferenceCategory
+        android:title="Detección de Caídas"
+        android:icon="@drawable/ic_fall_detection"
+        app:iconSpaceReserved="true">
+
+        <SwitchPreference
+            android:key="fall_detection_enabled"
+            android:title="Activar Detección de Caídas"
+            android:summary="Guardian monitoreará continuamente posibles caídas"
+            android:defaultValue="true"
+            android:icon="@drawable/ic_shield"
+            app:iconSpaceReserved="true" />
+
+
+        <EditTextPreference
+            android:key="delay_seconds"
+            android:title="Tiempo de Espera"
+            android:summary="Segundos antes de enviar la alerta (permite cancelar falsas alarmas)"
+            android:defaultValue="30"
+            android:inputType="number"
+            android:icon="@drawable/ic_timer"
+            android:dependency="fall_detection_enabled"
+            app:iconSpaceReserved="true" />
+
+    </PreferenceCategory>
+
+    <!-- Categoría de Privacidad y Datos -->
+    <PreferenceCategory
+        android:title="Privacidad y Datos"
+        android:icon="@drawable/ic_privacy"
+        app:iconSpaceReserved="true">
+
+        <SwitchPreference
+            android:key="@string/collection"
+            android:title="Recolección de Datos"
+            android:summaryOn="Los datos de sensores se están recolectando para mejorar la detección"
+            android:summaryOff="La recolección de datos está desactivada"
+            android:icon="@drawable/ic_data_collection"
+            app:iconSpaceReserved="true" />
+
+        <Preference
+            android:key="privacy_policy"
+            android:title="Política de Privacidad"
+            android:summary="Lee cómo Guardian protege tu información"
+            android:icon="@drawable/ic_policy"
+            app:iconSpaceReserved="true" />
+
+
+
+    </PreferenceCategory>
+
+    <!-- Categoría Acerca de -->
+    <PreferenceCategory
+        android:title="Información"
+        android:icon="@drawable/ic_info"
+        app:iconSpaceReserved="true">
+
+        <Preference
+            android:key="app_version"
+            android:title="Versión"
+            android:summary="Guardian v1.0.0"
+            android:icon="@drawable/ic_version"
+            app:iconSpaceReserved="true" />
+
+
+
+
+    </PreferenceCategory>
+    <PreferenceCategory>
+        <Preference
+            android:selectable="false"
+            android:layout="@drawable/preference_spacer"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+</PreferenceScreen>
