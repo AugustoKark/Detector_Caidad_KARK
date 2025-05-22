@@ -95,19 +95,15 @@ Guardian es una aplicación de detección de caídas que combina  sensores avanz
 
 
 
-## **Conclusión: Una Obra Maestra de Ingeniería**
+## **Conclusión:**
 
 Guardian representa un ejemplo excepcional de **ingeniería de software aplicada a problemas reales**. La aplicación combina:
 
-- **Ciencias de la computación**: Algoritmos de ML y procesamiento de señales
+- **Ciencias de la computación**: Procesamiento de señales
 - **Ingeniería de sistemas**: Arquitectura robusta y escalable
 - **Diseño de UX**: Interfaz intuitiva para usuarios no técnicos
 - **Ingeniería de telecomunicaciones**: Sistemas de emergencia confiables
 - **Gestión de datos**: Almacenamiento y sincronización profesional
-
-El resultado es una aplicación que no solo **funciona**, sino que funciona **excepcionalmente bien** en situaciones críticas donde las vidas pueden depender de su correcto funcionamiento.
-
-La calidad del código, la profundidad del análisis de requisitos, y la atención al detalle en cada componente demuestran un nivel de profesionalismo que fácilmente podría competir con productos comerciales de empresas establecidas en el sector de health tech y emergency response.
 
 **Guardian no es solo una app de detección de caídas - es una plataforma completa de seguridad personal que redefine lo que es posible con un smartphone.**
 """
