@@ -6,6 +6,8 @@ import altermarkive.guardian.utils.Log
 import altermarkive.guardian.sensors.Positioning
 import altermarkive.guardian.R
 import altermarkive.guardian.detection.Sampler
+import altermarkive.guardian.safezone.SafeZoneManager
+import altermarkive.guardian.safezone.SafeZoneMonitoringService
 import altermarkive.guardian.storage.ServerAdapter
 import android.annotation.SuppressLint
 import android.app.*
@@ -23,7 +25,10 @@ class Guardian : Service() {
         Detector.instance(this)
         Sampler.instance(this)
         Alarm.instance(this)
-        // En el método onCreate()
+        // Iniciar servicio de monitorización de zona segura si está habilitado
+        if (SafeZoneManager.isMonitoringEnabled(this)) {
+            SafeZoneMonitoringService.startService(this)
+        }
         ServerAdapter.initializeScheduledUploads(this)
     }
 

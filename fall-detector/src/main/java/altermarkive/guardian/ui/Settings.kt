@@ -8,6 +8,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import altermarkive.guardian.R
 import altermarkive.guardian.alerts.Alarm
+import androidx.preference.SwitchPreference
 
 class Settings : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -54,7 +55,38 @@ class Settings : PreferenceFragmentCompat() {
                 }
             }
         }
+
+        findPreference<SwitchPreference>("fall_detection_enabled")?.apply {
+            // Mostrar estado actual en el summary
+            updateFallDetectionSummary(isChecked)
+
+            setOnPreferenceChangeListener { preference, newValue ->
+                val isEnabled = newValue as Boolean
+                updateFallDetectionSummary(isEnabled)
+
+                // Mostrar mensaje de confirmación
+                val message = if (isEnabled) {
+                    "Detección de caídas activada"
+                } else {
+                    "Detección de caídas desactivada"
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+                true
+            }
+        }
     }
+
+    private fun updateFallDetectionSummary(isEnabled: Boolean) {
+        findPreference<SwitchPreference>("fall_detection_enabled")?.apply {
+            summary = if (isEnabled) {
+                "Guardian está monitoreando caídas activamente"
+            } else {
+                "La detección de caídas está desactivada"
+            }
+        }
+    }
+
 
     private fun getAppVersion(): String {
         return try {

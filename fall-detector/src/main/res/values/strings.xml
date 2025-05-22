@@ -21,5 +21,9 @@
 
     <string name="emergency_setup_title">Configuración de Emergencia</string>
     <string name="configure_contact">Configurar Contacto de Emergencia</string>
+
+
     <string name="emergency_setup_description">Guardian detecta automáticamente caídas y accidentes. Cuando esto ocurre, enviará una alerta con tu ubicación al contacto de emergencia que configures.</string>
+    <string name="safezone">Zona Segura</string>
+
 </resources>

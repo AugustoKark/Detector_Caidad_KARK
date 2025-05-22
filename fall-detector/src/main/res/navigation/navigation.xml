@@ -17,6 +17,18 @@
         android:label="@string/signals"
         tools:layout="@layout/signals" />
 
+
+
+    <fragment
+        android:id="@+id/safezone"
+        android:name="altermarkive.guardian.safezone.SafeZoneFragment"
+        android:label="@string/safezone"
+        tools:layout="@layout/fragment_safezone" >
+        <action
+            android:id="@+id/action_safezone_self"
+            app:destination="@id/safezone" />
+    </fragment>
+
     <fragment
         android:id="@+id/settings"
         android:name="altermarkive.guardian.ui.Settings"

@@ -55,7 +55,7 @@ class Main : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.main) as NavHostFragment
         val navController = navHostFragment.navController
         val appBarConfiguration =
-            AppBarConfiguration(setOf(R.id.about, R.id.signals, R.id.settings))
+            AppBarConfiguration(setOf(R.id.about, R.id.signals, R.id.settings,R.id.safezone))
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
         eula(this)

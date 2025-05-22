@@ -11,6 +11,7 @@ import altermarkive.guardian.core.Guardian
 import altermarkive.guardian.sensors.Battery
 import altermarkive.guardian.sensors.Positioning
 import altermarkive.guardian.storage.ServerAdapter
+import altermarkive.guardian.utils.FallDetectionSettings
 import android.content.Context
 import android.content.Context.SENSOR_SERVICE
 import android.hardware.Sensor
@@ -605,9 +606,10 @@ class Detector private constructor() : SensorEventListener {
 
             if (hasStrongEvidence) {
                 lying[at] = 1.0
+
                 lastFallAlertTime = currentTime
                 val context = this.context
-                if (context != null) {
+                if (context != null && FallDetectionSettings.isFallDetectionEnabled(context)) {
                     val fallReason = when {
                         isHorizontal -> "horizontal position"
                         fallType != FallType.UNKNOWN -> "fall type: $fallType"
@@ -615,7 +617,14 @@ class Detector private constructor() : SensorEventListener {
                     }
                     Guardian.say(context, android.util.Log.WARN, TAG, "Detected a fall - Reason: $fallReason, Peak: $peakAcceleration")
                     showFallAlert(context)
+                }else{
+                    context?.let {
+                        Guardian.say(it, android.util.Log.INFO, TAG, "Fall detected but detection is disabled in settings")
+                    }
+
                 }
+
+
             } else {
                 log(android.util.Log.DEBUG, "Weak evidence for fall - skipping alert")
             }

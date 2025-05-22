@@ -1,0 +1,45 @@
+.
+├── alerts
+│   ├── Alarm.kt
+│   ├── Contact.kt
+│   ├── FallAlertActivity.kt
+│   ├── Messenger.kt
+│   └── Telephony.kt
+├── arbol.txt
+├── core
+│   ├── About.kt
+│   ├── Boot.kt
+│   ├── Connectivity.kt
+│   ├── Guardian.kt
+│   └── Main.kt
+├── detection
+│   ├── Buffers.kt
+│   ├── Detector.kt
+│   └── Sampler.kt
+├── safezone
+│   ├── ExceptionScheduleAdapter.kt
+│   ├── SafeZoneAdapter.kt
+│   ├── SafeZoneFragment.kt
+│   ├── SafezoneModel.kt
+│   └── SafeZoneMonitoringService.kt
+├── sensors
+│   ├── Battery.kt
+│   ├── Positioning.kt
+│   └── Report.kt
+├── storage
+│   ├── Data.kt
+│   ├── ServerAdapter.kt
+│   ├── Storage.kt
+│   └── Upload.kt
+├── Surface.kt
+├── ui
+│   ├── Settings.kt
+│   ├── Signals.kt
+│   └── Zoomable.kt
+└── utils
+    ├── Batch.kt
+    ├── FallDetectionSettings.kt
+    ├── Log.kt
+    └── VibrationUtils.kt
+
+9 directories, 34 files

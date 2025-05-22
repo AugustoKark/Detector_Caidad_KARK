@@ -84,6 +84,15 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".safezone.SafeZoneSettingsActivity"
+            android:label="Configuración de Zona Segura"
+            android:parentActivityName=".core.Main" />
+
+        <service
+            android:name=".safezone.SafeZoneMonitoringService"
+            android:enabled="true"
+            android:exported="false" />
 
         <receiver
             android:name="altermarkive.guardian.core.Boot"
@@ -136,6 +145,7 @@
                 <action android:name="altermarkive.guardian.Guardian" />
             </intent-filter>
         </service>
+
     </application>
 
 </manifest>

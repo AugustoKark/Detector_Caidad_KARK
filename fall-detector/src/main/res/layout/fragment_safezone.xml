@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingBottom="?attr/actionBarSize">
+
+    <!-- Resto de tu contenido actual sin cambios -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@drawable/card_background">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Monitorización de zona segura"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+
+        <Switch
+            android:id="@+id/monitoringSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        app:tabTextColor="@android:color/white"
+        app:tabSelectedTextColor="@android:color/white"
+        app:tabIndicatorColor="@android:color/white">
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Zonas Seguras" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Horarios de Excepción" />
+    </com.google.android.material.tabs.TabLayout>
+
+    <!-- Resto del contenido... -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Contenedor de Zonas Seguras -->
+        <FrameLayout
+            android:id="@+id/safeZonesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="100dp">
+
+            <ListView
+                android:id="@+id/safeZonesList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@android:color/darker_gray"
+                android:dividerHeight="0.5dp" />
+
+            <TextView
+                android:id="@+id/emptySafeZonesText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="No hay zonas seguras configuradas"
+                android:textSize="16sp"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- Contenedor de Horarios de Excepción -->
+        <FrameLayout
+            android:id="@+id/schedulesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="100dp"
+            android:visibility="gone">
+
+            <ListView
+                android:id="@+id/schedulesList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@android:color/darker_gray"
+                android:dividerHeight="0.5dp" />
+
+            <TextView
+                android:id="@+id/emptySchedulesText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="No hay horarios de excepción configurados"
+                android:textSize="16sp"
+                android:visibility="gone" />
+        </FrameLayout>
+
+        <!-- Botones flotantes posicionados con RelativeLayout -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/addSafeZoneButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="400dp"
+            android:contentDescription="Añadir zona segura"
+            app:srcCompat="@android:drawable/ic_input_add" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/addScheduleButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="400dp"
+            android:contentDescription="Añadir horario de excepción"
+            app:srcCompat="@android:drawable/ic_input_add" />
+
+    </RelativeLayout>
+</LinearLayout>
