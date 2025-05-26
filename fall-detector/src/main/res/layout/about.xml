@@ -41,16 +41,17 @@
                 android:textColor="@android:color/black"
                 android:textStyle="bold" />
 
-            <!-- Versión -->
+            <!-- Estado actual - Debajo del título -->
             <TextView
-                android:id="@+id/app_version"
-                android:layout_width="wrap_content"
+                android:id="@+id/status"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="24dp"
-                android:text="Versión 1.0.0"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-                android:textColor="#666666" />
+                android:gravity="center"
+                android:text="ACTIVO"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+                android:textColor="#4CAF50"
+                android:textStyle="bold" />
 
             <!-- Descripción principal -->
             <TextView
@@ -229,28 +230,10 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Estado actual -->
-            <TextView
-                android:id="@+id/status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="16dp"
-                android:gravity="center"
-                android:text="Guardian está activo"
-                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
-                android:textColor="#4CAF50"
-                android:textStyle="bold" />
-
             <!-- Información técnica -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:gravity="center"
-                android:text="Basado en algoritmos de detección de caídas\nde la Universidad de Oulu, Finlandia"
-                android:textColor="#999999"
-                android:textSize="12sp" />
+
+
+
 
         </LinearLayout>
     </ScrollView>

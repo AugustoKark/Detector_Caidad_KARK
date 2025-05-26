@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import android.Manifest
 import android.content.pm.PackageManager
@@ -28,9 +29,9 @@ class About : Fragment(), View.OnClickListener {
         val binding = inflater.inflate(R.layout.about, container, false)
         this.binding = binding
 
-        // Configurar versión de la app
-        val versionText = binding.findViewById<TextView>(R.id.app_version)
-        versionText.text = "Versión ${getAppVersion()}"
+//        // Configurar versión de la app
+//        val versionText = binding.findViewById<TextView>(R.id.app_version)
+//        versionText.text = "Versión ${getAppVersion()}"
 
         // Configurar botón de emergencia
         val emergency = binding.findViewById<ExtendedFloatingActionButton>(R.id.emergency)
@@ -53,18 +54,26 @@ class About : Fragment(), View.OnClickListener {
     private fun refreshPermissions(request: Boolean) {
         val statusText: String
         val statusColor: Int
+        val logoColor: Int
+
         if (permitted(request)) {
-            statusText = "Guardian está activo"
+            statusText = "ACTIVO"
             statusColor = ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark)
+            logoColor = ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark)
         } else {
-            statusText = "Permisos requeridos"
+            statusText = "INACTIVO"
             statusColor = Color.RED
+            logoColor = ContextCompat.getColor(requireContext(), R.color.red_emergency)
         }
+
         val binding = this.binding ?: return
         val status = binding.findViewById<TextView>(R.id.status)
+        val logo = binding.findViewById<ImageView>(R.id.app_logo)
+
         activity?.runOnUiThread {
             status.text = statusText
             status.setTextColor(statusColor)
+            logo.setColorFilter(logoColor)
         }
     }
 
