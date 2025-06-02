@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:paddingBottom="?attr/actionBarSize">
 
-    <!-- Resto de tu contenido actual sin cambios -->
+    <!-- Switch principal para monitorización -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -28,6 +28,7 @@
             android:layout_height="wrap_content" />
     </LinearLayout>
 
+    <!-- TabLayout con tres pestañas -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
@@ -46,9 +47,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Horarios de Excepción" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mapa" />
     </com.google.android.material.tabs.TabLayout>
 
-    <!-- Resto del contenido... -->
+    <!-- Contenedor principal -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -103,6 +109,13 @@
                 android:textSize="16sp"
                 android:visibility="gone" />
         </FrameLayout>
+
+        <!-- Contenedor del Mapa -->
+        <FrameLayout
+            android:id="@+id/mapContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
 
         <!-- Botones flotantes posicionados con RelativeLayout -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton

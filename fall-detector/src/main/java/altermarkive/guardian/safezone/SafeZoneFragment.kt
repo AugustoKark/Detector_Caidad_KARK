@@ -1,6 +1,5 @@
 package altermarkive.guardian.safezone
 
-
 import altermarkive.guardian.R
 import android.Manifest
 import android.app.AlertDialog
@@ -22,6 +21,7 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -38,11 +38,13 @@ class SafeZoneFragment : Fragment() {
     private lateinit var exceptionSchedulesListView: ListView
     private lateinit var safeZonesContainer: View
     private lateinit var schedulesContainer: View
+    private lateinit var mapContainer: View
     private lateinit var addSafeZoneButton: FloatingActionButton
     private lateinit var addScheduleButton: FloatingActionButton
 
     private lateinit var safeZoneAdapter: SafeZoneAdapter
     private lateinit var scheduleAdapter: ExceptionScheduleAdapter
+    private var mapFragment: SafeZoneMapFragment? = null
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -60,6 +62,7 @@ class SafeZoneFragment : Fragment() {
             mainSwitch.isChecked = false
         }
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,6 +78,7 @@ class SafeZoneFragment : Fragment() {
         exceptionSchedulesListView = view.findViewById(R.id.schedulesList)
         safeZonesContainer = view.findViewById(R.id.safeZonesContainer)
         schedulesContainer = view.findViewById(R.id.schedulesContainer)
+        mapContainer = view.findViewById(R.id.mapContainer)
         addSafeZoneButton = view.findViewById(R.id.addSafeZoneButton)
         addScheduleButton = view.findViewById(R.id.addScheduleButton)
 
@@ -141,19 +145,74 @@ class SafeZoneFragment : Fragment() {
         return view
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private fun updateTabVisibility(tabPosition: Int) {
         when (tabPosition) {
             0 -> { // Zonas Seguras
                 safeZonesContainer.visibility = View.VISIBLE
                 schedulesContainer.visibility = View.GONE
+                mapContainer.visibility = View.GONE
                 addSafeZoneButton.show()
                 addScheduleButton.hide()
+
+                // Limpiar el mapa cuando no está visible para evitar problemas
+                if (mapFragment != null) {
+                    try {
+                        childFragmentManager.beginTransaction()
+                            .hide(mapFragment!!)
+                            .commit()
+                    } catch (e: Exception) {
+                        // Ignorar errores
+                    }
+                }
             }
             1 -> { // Horarios de Excepción
                 safeZonesContainer.visibility = View.GONE
                 schedulesContainer.visibility = View.VISIBLE
+                mapContainer.visibility = View.GONE
                 addSafeZoneButton.hide()
                 addScheduleButton.show()
+
+                // Limpiar el mapa cuando no está visible
+                if (mapFragment != null) {
+                    try {
+                        childFragmentManager.beginTransaction()
+                            .hide(mapFragment!!)
+                            .commit()
+                    } catch (e: Exception) {
+                        // Ignorar errores
+                    }
+                }
+            }
+            2 -> { // Mapa
+                safeZonesContainer.visibility = View.GONE
+                schedulesContainer.visibility = View.GONE
+                mapContainer.visibility = View.VISIBLE
+                addSafeZoneButton.hide()
+                addScheduleButton.hide()
+
+                // Cargar fragmento del mapa de manera segura
+                try {
+                    if (mapFragment == null) {
+                        mapFragment = SafeZoneMapFragment()
+                        childFragmentManager.beginTransaction()
+                            .replace(R.id.mapContainer, mapFragment!!)
+                            .commit()
+                    } else {
+                        childFragmentManager.beginTransaction()
+                            .show(mapFragment!!)
+                            .commit()
+
+                        // Refrescar el mapa después de un breve delay para asegurar que esté visible
+                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                            if (isAdded && mapContainer.visibility == View.VISIBLE) {
+                                mapFragment?.refreshMap()
+                            }
+                        }, 300)
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "Error al cargar el mapa", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -181,13 +240,28 @@ class SafeZoneFragment : Fragment() {
             SafeZoneMonitoringService.stopService(requireContext())
         }
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 
     override fun onResume() {
         super.onResume()
         updateLists()
         mainSwitch.isChecked = SafeZoneManager.isMonitoringEnabled(requireContext())
+
+        // Solo refrescar el mapa si está visible y ha sido creado
+        if (mapContainer.visibility == View.VISIBLE && mapFragment != null && isAdded) {
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                if (isAdded && mapContainer.visibility == View.VISIBLE) {
+                    try {
+                        mapFragment?.refreshMap()
+                    } catch (e: Exception) {
+                        // Ignorar errores de refresh del mapa
+                    }
+                }
+            }, 500)
+        }
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     private fun updateLists() {
         safeZoneAdapter.clear()
         safeZoneAdapter.addAll(SafeZoneManager.getSafeZones(requireContext()))
@@ -203,7 +277,11 @@ class SafeZoneFragment : Fragment() {
 
         val emptySchedulesView = view?.findViewById<TextView>(R.id.emptySchedulesText)
         emptySchedulesView?.visibility = if (scheduleAdapter.count == 0) View.VISIBLE else View.GONE
+
+        // Refrescar el mapa si está cargado
+        mapFragment?.refreshMap()
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 
     private fun showAddSafeZoneDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_safe_zone, null)
@@ -286,6 +364,7 @@ class SafeZoneFragment : Fragment() {
 
         dialog.show()
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 
     private fun showEditSafeZoneDialog(safeZone: SafeZone) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_safe_zone, null)
@@ -379,6 +458,7 @@ class SafeZoneFragment : Fragment() {
 
         dialog.show()
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 
     private fun showAddScheduleDialog() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_schedule, null)
@@ -471,6 +551,7 @@ class SafeZoneFragment : Fragment() {
 
         dialog.show()
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 
     private fun showEditScheduleDialog(schedule: ExceptionSchedule) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_add_schedule, null)
@@ -587,6 +668,7 @@ class SafeZoneFragment : Fragment() {
 
         dialog.show()
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 
     private fun getCurrentLocation(callback: (Location) -> Unit) {
         val locationManager = requireActivity().getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -630,6 +712,7 @@ class SafeZoneFragment : Fragment() {
             ).show()
         }
     }
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 
     private fun getCoordinatesFromAddress(address: String, callback: (Location?) -> Unit) {
         try {
@@ -691,7 +774,20 @@ class SafeZoneFragment : Fragment() {
             callback(null)
         }
     }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        // Limpiar el fragmento del mapa de manera segura
+        try {
+            if (mapFragment != null) {
+                childFragmentManager.beginTransaction()
+                    .remove(mapFragment!!)
+                    .commitAllowingStateLoss()
+                mapFragment = null
+            }
+        } catch (e: Exception) {
+            // Ignorar errores de limpieza
+        }
+    }
 }
-
-
-
