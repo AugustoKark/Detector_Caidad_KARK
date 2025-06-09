@@ -25,6 +25,8 @@ import java.io.FileWriter
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import android.content.Intent
+import altermarkive.guardian.utils.VibrationUtils
 
 class Detector private constructor() : SensorEventListener {
     var context: Guardian? = null
@@ -1184,16 +1186,43 @@ class Detector private constructor() : SensorEventListener {
     }
 
     private fun showFallAlert(context: Context) {
-        // Modificar el título/mensaje de la alerta según el modo
-        if (esFalsaCaida) {
-            // En modo de recolección de falsos positivos, mostrar mensaje diferente
-            log(android.util.Log.INFO, "FALSE_POSITIVE detected in pocket - showing confirmation alert")
-        } else {
-            log(android.util.Log.INFO, "TRUE_FALL detected in pocket - showing emergency alert")
-        }
+        try {
+            // Modificar el título/mensaje de la alerta según el modo
+            if (esFalsaCaida) {
+                // En modo de recolección de falsos positivos, mostrar mensaje diferente
+                log(android.util.Log.INFO, "FALSE_POSITIVE detected in pocket - showing confirmation alert")
+            } else {
+                log(android.util.Log.INFO, "TRUE_FALL detected in pocket - showing emergency alert")
+            }
 
-        // Inicia la Activity de alerta por caída
-        FallAlertActivity.start(context)
+            // Asegurar que el contexto es de aplicación
+            val appContext = context.applicationContext
+
+            // Crear intent con flags específicos para emergencia
+            val intent = Intent(appContext, FallAlertActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                        Intent.FLAG_ACTIVITY_NO_HISTORY or
+                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+            }
+
+            // Iniciar la actividad
+            appContext.startActivity(intent)
+
+            log(android.util.Log.INFO, "FallAlertActivity launched successfully")
+
+        } catch (e: Exception) {
+            log(android.util.Log.ERROR, "Error launching FallAlertActivity: ${e.message}")
+
+            // Fallback: al menos hacer vibrar y sonar alarma
+            try {
+                VibrationUtils.vibrate(context, longArrayOf(0, 1000, 200, 1000), 0)
+                Alarm.siren(context)
+            } catch (fallbackError: Exception) {
+                log(android.util.Log.ERROR, "Fallback alert also failed: ${fallbackError.message}")
+            }
+        }
     }
 
     // Método público para obtener el estado del sensor (útil para debugging)
