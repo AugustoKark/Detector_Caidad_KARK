@@ -21,8 +21,19 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class Main : AppCompatActivity() {
     private fun eula(context: Context) {
-        // Run the guardian
+        // Verificar si el usuario ya aceptó los términos
+        val prefs = getSharedPreferences("guardian_prefs", Context.MODE_PRIVATE)
+        val eulaAccepted = prefs.getBoolean("eula_accepted", false)
+        
+        if (eulaAccepted) {
+            // El usuario ya aceptó los términos, solo iniciar Guardian
+            Guardian.initiate(this)
+            return
+        }
+        
+        // Primera vez o términos no aceptados, mostrar EULA
         Guardian.initiate(this)
+        
         // Load the EULA
         val dialog = Dialog(context)
         dialog.setContentView(R.layout.eula)
@@ -31,6 +42,11 @@ class Main : AppCompatActivity() {
         // Buscar el botón con el ID correcto según tu layout
         val acceptButton = dialog.findViewById<View>(R.id.acceptButton) as com.google.android.material.button.MaterialButton
         acceptButton.setOnClickListener {
+            // Marcar como aceptado en SharedPreferences
+            val editor = prefs.edit()
+            editor.putBoolean("eula_accepted", true)
+            editor.apply()
+            
             // Cerrar el diálogo
             dialog.dismiss()
 
