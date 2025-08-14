@@ -1187,6 +1187,9 @@ class Detector private constructor() : SensorEventListener {
 
     private fun showFallAlert(context: Context) {
         try {
+            // INMEDIATAMENTE iniciar vibración y sonido antes de mostrar la pantalla
+            startImmediateAlert(context)
+            
             // Modificar el título/mensaje de la alerta según el modo
             if (esFalsaCaida) {
                 // En modo de recolección de falsos positivos, mostrar mensaje diferente
@@ -1216,12 +1219,23 @@ class Detector private constructor() : SensorEventListener {
             log(android.util.Log.ERROR, "Error launching FallAlertActivity: ${e.message}")
 
             // Fallback: al menos hacer vibrar y sonar alarma
-            try {
-                VibrationUtils.vibrate(context, longArrayOf(0, 1000, 200, 1000), 0)
-                Alarm.siren(context)
-            } catch (fallbackError: Exception) {
-                log(android.util.Log.ERROR, "Fallback alert also failed: ${fallbackError.message}")
-            }
+            startImmediateAlert(context)
+        }
+    }
+    
+    private fun startImmediateAlert(context: Context) {
+        try {
+            // Vibración inmediata intensa
+            val emergencyPattern = longArrayOf(0, 1000, 200, 1000, 200, 1000, 200, 1000)
+            VibrationUtils.vibrate(context, emergencyPattern, 0)
+            log(android.util.Log.INFO, "Emergency vibration started immediately")
+            
+            // Sonido de alerta inmediato
+            Alarm.siren(context)
+            log(android.util.Log.INFO, "Emergency alarm started immediately")
+            
+        } catch (e: Exception) {
+            log(android.util.Log.ERROR, "Error starting immediate alert: ${e.message}")
         }
     }
 

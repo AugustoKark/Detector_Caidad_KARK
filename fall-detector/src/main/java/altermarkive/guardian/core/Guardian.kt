@@ -9,18 +9,30 @@ import altermarkive.guardian.detection.Sampler
 import altermarkive.guardian.safezone.SafeZoneManager
 import altermarkive.guardian.safezone.SafeZoneMonitoringService
 import altermarkive.guardian.storage.ServerAdapter
+import altermarkive.guardian.utils.BatteryOptimizationHelper
 import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 
 class Guardian : Service() {
+    private var wakeLock: PowerManager.WakeLock? = null
+    
     override fun onCreate() {
+        super.onCreate()
+        
+        // Verificar y solicitar desactivación de optimización de batería
+        BatteryOptimizationHelper.checkAndRequestOptimizations(this)
+        
+        // Adquirir wake lock para mantener los sensores activos
+        acquireWakeLock()
+        
         Positioning.initiate(this)
         Detector.instance(this)
         Sampler.instance(this)
@@ -30,6 +42,35 @@ class Guardian : Service() {
             SafeZoneMonitoringService.startService(this)
         }
         ServerAdapter.initializeScheduledUploads(this)
+    }
+    
+    private fun acquireWakeLock() {
+        try {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = powerManager.newWakeLock(
+                PowerManager.PARTIAL_WAKE_LOCK,
+                "Guardian:FallDetectionWakeLock"
+            )
+            wakeLock?.setReferenceCounted(false)
+            wakeLock?.acquire()
+            say(this, android.util.Log.INFO, "Guardian", "Wake lock acquired for fall detection")
+        } catch (e: Exception) {
+            say(this, android.util.Log.ERROR, "Guardian", "Error acquiring wake lock: ${e.message}")
+        }
+    }
+    
+    private fun releaseWakeLock() {
+        try {
+            wakeLock?.let { wl ->
+                if (wl.isHeld) {
+                    wl.release()
+                    say(this, android.util.Log.INFO, "Guardian", "Wake lock released")
+                }
+            }
+            wakeLock = null
+        } catch (e: Exception) {
+            say(this, android.util.Log.ERROR, "Guardian", "Error releasing wake lock: ${e.message}")
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -63,8 +104,11 @@ class Guardian : Service() {
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(android.R.drawable.stat_sys_warning)
             .setContentTitle(app)
-            .setContentText("$app is active")
+            .setContentText("Detectando caídas en segundo plano")
+            .setSubText("Sensores activos - Pantalla puede estar bloqueada")
             .setWhen(now)
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
             .setContentIntent(pending).build()
         startForeground(1, notification)
         return START_STICKY
@@ -72,6 +116,12 @@ class Guardian : Service() {
 
     override fun onBind(intent: Intent): IBinder? {
         return null
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        releaseWakeLock()
+        say(this, android.util.Log.INFO, "Guardian", "Guardian service destroyed")
     }
 
     companion object {
