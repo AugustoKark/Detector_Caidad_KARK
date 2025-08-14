@@ -2,8 +2,11 @@ package altermarkive.guardian.core
 
 import altermarkive.guardian.R
 import altermarkive.guardian.databinding.MainBinding
+import altermarkive.guardian.alerts.FallAlertActivity
+import altermarkive.guardian.alerts.FallCountdownService
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.WindowManager
@@ -48,6 +51,22 @@ class Main : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // *** VERIFICAR SI HAY COUNTDOWN EN PROGRESO ANTES DE MOSTRAR LA APP ***
+        val (isCountdownActive, remainingSeconds) = FallCountdownService.getCountdownStatus()
+        
+        if (isCountdownActive) {
+            // Hay un countdown en progreso, lanzar FallAlertActivity inmediatamente
+            val intent = Intent(this, FallAlertActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("FROM_MAIN_ACTIVITY", true)
+            }
+            startActivity(intent)
+            // No mostrar la interfaz principal, el usuario debe ver la alerta
+            finish()
+            return
+        }
+        
         val binding = MainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val navView: BottomNavigationView = binding.navigation
@@ -59,5 +78,21 @@ class Main : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
         eula(this)
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        
+        // Verificar de nuevo por si se inició un countdown mientras la app estaba en primer plano
+        val (isCountdownActive, remainingSeconds) = FallCountdownService.getCountdownStatus()
+        
+        if (isCountdownActive) {
+            // Hay un countdown en progreso, lanzar FallAlertActivity
+            val intent = Intent(this, FallAlertActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra("FROM_MAIN_ACTIVITY", true)
+            }
+            startActivity(intent)
+        }
     }
 }

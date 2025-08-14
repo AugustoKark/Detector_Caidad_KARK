@@ -27,6 +27,7 @@ class FallAlertActivity : AppCompatActivity() {
     private var isConnectedToService = false
     private var serviceCheckHandler = Handler(Looper.getMainLooper())
     private var serviceCheckRunnable: Runnable? = null
+    private var launchedFromMainActivity = false
 
     companion object {
         private const val VIBRATION_PATTERN_DURATION_MS = 1000L
@@ -46,6 +47,9 @@ class FallAlertActivity : AppCompatActivity() {
 
         val prefs = getSharedPreferences("guardian_prefs", Context.MODE_PRIVATE)
         countdownSeconds = prefs.getInt("fall_detection_delay", 30)
+        
+        // Verificar si fue lanzada desde MainActivity
+        launchedFromMainActivity = intent.getBooleanExtra("FROM_MAIN_ACTIVITY", false)
 
         // CRÍTICO: Configurar la pantalla para emergencia ANTES de setContentView
         setupScreenForEmergency()
@@ -66,9 +70,17 @@ class FallAlertActivity : AppCompatActivity() {
             connectToRunningService(remainingSeconds)
             Log.i(TAG, "FallAlertActivity conectada a servicio en progreso - $remainingSeconds segundos restantes")
         } else {
-            // No hay servicio en progreso, iniciar countdown normal
-            startStandaloneCountdown()
-            Log.i(TAG, "FallAlertActivity iniciada como countdown standalone")
+            // No hay servicio en progreso
+            if (launchedFromMainActivity) {
+                // Si fue lanzada desde MainActivity pero no hay countdown, regresar
+                Log.i(TAG, "Lanzada desde MainActivity pero no hay countdown activo - regresando")
+                goBackToMainActivity()
+                return
+            } else {
+                // Iniciar countdown normal (standalone)
+                startStandaloneCountdown()
+                Log.i(TAG, "FallAlertActivity iniciada como countdown standalone")
+            }
         }
     }
 
@@ -382,12 +394,32 @@ class FallAlertActivity : AppCompatActivity() {
                         countdownTextView.text = "0"
                         infoTextView.text = "Enviando alerta..."
                         // Cerrar la actividad después de un breve delay
-                        serviceCheckHandler.postDelayed({ finish() }, 2000)
+                        serviceCheckHandler.postDelayed({
+                            if (launchedFromMainActivity) {
+                                goBackToMainActivity()
+                            } else {
+                                finish()
+                            }
+                        }, 2000)
                     }
                 }
             }
         }
         serviceCheckRunnable?.let { serviceCheckHandler.post(it) }
+    }
+    
+    private fun goBackToMainActivity() {
+        try {
+            val intent = Intent(this, altermarkive.guardian.core.Main::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            startActivity(intent)
+            finish()
+            Log.i(TAG, "Regresando a MainActivity")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error regresando a MainActivity: ${e.message}")
+            finish() // Fallback: cerrar la actividad
+        }
     }
 
     private fun cancelAlert() {
@@ -424,7 +456,12 @@ class FallAlertActivity : AppCompatActivity() {
         Log.i(TAG, "Alerta de caída cancelada por el usuario")
         Guardian.say(applicationContext, Log.INFO, TAG, "Alerta de caída cancelada")
 
-        finish()
+        // Si fue lanzada desde MainActivity, regresar a ella
+        if (launchedFromMainActivity) {
+            goBackToMainActivity()
+        } else {
+            finish()
+        }
     }
 
     private fun sendAlert() {
