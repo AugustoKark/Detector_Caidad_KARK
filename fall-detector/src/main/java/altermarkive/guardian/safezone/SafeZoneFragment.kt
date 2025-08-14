@@ -54,11 +54,11 @@ class SafeZoneFragment : Fragment() {
             updateServiceStatus()
         } else {
             // Algunos permisos denegados
-            Toast.makeText(
-                requireContext(),
-                "Se necesitan permisos de ubicación para la monitorización de zona segura",
-                Toast.LENGTH_LONG
-            ).show()
+//            Toast.makeText(
+//                requireContext(),
+//                "Se necesitan permisos de ubicación para la monitorización de zona segura",
+//                Toast.LENGTH_LONG
+//            ).show()
             mainSwitch.isChecked = false
         }
     }
@@ -211,7 +211,7 @@ class SafeZoneFragment : Fragment() {
                         }, 300)
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(requireContext(), "Error al cargar el mapa", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(requireContext(), "Error al cargar el mapa", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -334,12 +334,12 @@ class SafeZoneFragment : Fragment() {
                 val address = addressEditText.text.toString()
 
                 if (name.isBlank()) {
-                    Toast.makeText(requireContext(), "Por favor, introduce un nombre", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(requireContext(), "Por favor, introduce un nombre", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
 
                 if (address.isBlank()) {
-                    Toast.makeText(requireContext(), "Por favor, introduce una dirección", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(requireContext(), "Por favor, introduce una dirección", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
 

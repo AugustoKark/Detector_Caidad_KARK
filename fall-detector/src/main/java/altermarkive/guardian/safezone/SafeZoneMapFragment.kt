@@ -13,7 +13,7 @@ import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -55,11 +55,11 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
             enableMyLocation()
         } else {
             context?.let {
-                Toast.makeText(
-                    it,
-                    "Se necesitan permisos de ubicación para mostrar tu posición",
-                    Toast.LENGTH_LONG
-                ).show()
+//                //Toast.makeText(
+//                    it,
+//                    "Se necesitan permisos de ubicación para mostrar tu posición",
+//                    //Toast.LENGTH_LONG
+//                ).show()
             }
         }
     }
@@ -119,7 +119,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
             }
         } catch (e: Exception) {
             context?.let {
-                Toast.makeText(it, "Error al inicializar el mapa", Toast.LENGTH_SHORT).show()
+//                //Toast.makeText(it, "Error al inicializar el mapa", //Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -132,7 +132,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
         refreshButton?.setOnClickListener {
             refreshMap()
             context?.let {
-                Toast.makeText(it, "Mapa actualizado", Toast.LENGTH_SHORT).show()
+//                //Toast.makeText(it, "Mapa actualizado", //Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -187,7 +187,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
         } catch (e: Exception) {
             withContext(Dispatchers.Main) {
                 context?.let {
-                    Toast.makeText(it, "Error al cargar zonas seguras", Toast.LENGTH_SHORT).show()
+//                    //Toast.makeText(it, "Error al cargar zonas seguras", //Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -203,7 +203,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
 
             if (safeZones.isEmpty()) {
                 context?.let {
-                    Toast.makeText(it, "No hay zonas seguras configuradas", Toast.LENGTH_SHORT).show()
+                   // //Toast.makeText(it, "No hay zonas seguras configuradas", //Toast.LENGTH_SHORT).show()
                 }
                 return
             }
@@ -274,7 +274,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
             map.invalidate()
         } catch (e: Exception) {
             context?.let {
-                Toast.makeText(it, "Error al mostrar zonas en el mapa", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(it, "Error al mostrar zonas en el mapa", //Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -365,7 +365,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
             """.trimIndent()
 
             context?.let {
-                Toast.makeText(it, message, Toast.LENGTH_LONG).show()
+                //Toast.makeText(it, message, //Toast.LENGTH_LONG).show()
             }
         } catch (e: Exception) {
             // Ignorar errores de display
@@ -431,7 +431,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
 
         } catch (e: SecurityException) {
             context?.let {
-                Toast.makeText(it, "Error al obtener ubicación: ${e.message}", Toast.LENGTH_SHORT).show()
+                //Toast.makeText(it, "Error al obtener ubicación: ${e.message}", //Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -516,7 +516,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
                             mapView?.controller?.setZoom(16.0)
                         } else {
                             context?.let {
-                                Toast.makeText(it, "No se pudo obtener la ubicación actual", Toast.LENGTH_SHORT).show()
+                                //Toast.makeText(it, "No se pudo obtener la ubicación actual", //Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -524,7 +524,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     context?.let {
-                        Toast.makeText(it, "Error de permisos: ${e.message}", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(it, "Error de permisos: ${e.message}", //Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -607,7 +607,7 @@ class SafeZoneMapFragment : Fragment(), MapEventsReceiver {
             p?.let { geoPoint ->
                 val message = "Ubicación: ${String.format("%.6f", geoPoint.latitude)}, ${String.format("%.6f", geoPoint.longitude)}"
                 context?.let {
-                    Toast.makeText(it, message, Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(it, message, //Toast.LENGTH_SHORT).show()
                 }
             }
         } catch (e: Exception) {

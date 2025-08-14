@@ -31,26 +31,26 @@ object Messenger {
                 smsManager.sendMultipartTextMessage(recipient, null, parts, null, null)
 
 
-                Toast.makeText(
-                    context,
-                    "Se ha enviado un SMS de emergencia",
-                    Toast.LENGTH_LONG
-                ).show()
+//                Toast.makeText(
+//                    context,
+//                    "Se ha enviado un SMS de emergencia",
+//                    Toast.LENGTH_LONG
+//                ).show()
             } else {
                 Log.e(TAG, "No recipient specified for SMS")
-                Toast.makeText(
-                    context,
-                    "Error: No se ha configurado un contacto de emergencia",
-                    Toast.LENGTH_LONG
-                ).show()
+//                Toast.makeText(
+//                    context,
+//                    "Error: No se ha configurado un contacto de emergencia",
+//                    Toast.LENGTH_LONG
+//                ).show()
             }
         } catch (exception: Exception) {
             Log.e(TAG, "Failed to send SMS: ${exception.message}")
-            Toast.makeText(
-                context,
-                "Error al enviar SMS: ${exception.message}",
-                Toast.LENGTH_LONG
-            ).show()
+//            Toast.makeText(
+//                context,
+//                "Error al enviar SMS: ${exception.message}",
+//                Toast.LENGTH_LONG
+//            ).show()
         }
     }
 

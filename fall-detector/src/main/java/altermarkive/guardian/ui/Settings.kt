@@ -18,7 +18,7 @@ class Settings : PreferenceFragmentCompat() {
         findPreference<Preference>("test_alert")?.setOnPreferenceClickListener {
             // Usar la misma función que el botón de emergencia
             Alarm.alert(requireActivity().applicationContext)
-            Toast.makeText(context, "Alerta de prueba enviada", Toast.LENGTH_SHORT).show()
+           // Toast.makeText(context, "Alerta de prueba enviada", Toast.LENGTH_SHORT).show()
             true
         }
 
@@ -46,11 +46,11 @@ class Settings : PreferenceFragmentCompat() {
                     preference.summary = "Actualmente: $seconds segundos"
                     true
                 } else {
-                    Toast.makeText(
-                        context,
-                        "El tiempo debe estar entre 10 y 120 segundos",
-                        Toast.LENGTH_SHORT
-                    ).show()
+//                    Toast.makeText(
+//                        context,
+//                        "El tiempo debe estar entre 10 y 120 segundos",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
                     false
                 }
             }

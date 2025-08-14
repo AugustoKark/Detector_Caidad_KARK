@@ -86,7 +86,7 @@ class Guardian : Service() {
 
         internal fun say(context: Context, level: Int, tag: String, message: String) {
             Log.println(level, tag, message)
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+//            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 }
