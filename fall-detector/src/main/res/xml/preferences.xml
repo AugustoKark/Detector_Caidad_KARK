@@ -55,22 +55,14 @@
 
     <!-- Categoría de Privacidad y Datos -->
     <PreferenceCategory
-        android:title="Privacidad y Datos"
+        android:title="Privacidad y Legal"
         android:icon="@drawable/ic_privacy"
         app:iconSpaceReserved="true">
 
-        <SwitchPreference
-            android:key="@string/collection"
-            android:title="Recolección de Datos"
-            android:summaryOn="Los datos de sensores se están recolectando para mejorar la detección"
-            android:summaryOff="La recolección de datos está desactivada"
-            android:icon="@drawable/ic_data_collection"
-            app:iconSpaceReserved="true" />
-
         <Preference
             android:key="privacy_policy"
-            android:title="Política de Privacidad"
-            android:summary="Lee cómo Guardian protege tu información"
+            android:title="Términos y Condiciones"
+            android:summary="Revisa los términos y condiciones de uso de Guardian"
             android:icon="@drawable/ic_policy"
             app:iconSpaceReserved="true" />
 

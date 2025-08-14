@@ -20,8 +20,6 @@ import android.os.Environment
 import androidx.annotation.RequiresApi
 import kotlin.math.sqrt
 import kotlin.math.abs
-import java.io.File
-import java.io.FileWriter
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -119,45 +117,6 @@ class Detector private constructor() : SensorEventListener {
     // false = Recolectar CAÍDAS VERDADERAS (generas caídas reales controladas)
     private val esFalsaCaida = false
 
-    // Configuración de logging
-    private val CSV_LOGGING_ENABLED = true
-    private val SAMPLES_BEFORE_FALL = 50  // 1 segundo antes (50 * 20ms)
-    private val SAMPLES_AFTER_IMPACT = 100  // 2 segundos después (100 * 20ms)
-    private val csvDataBuffer = mutableListOf<CsvDataPoint>()
-    private var isCollectingData = false
-    private var samplesCollected = 0
-    private var fallDetectionTimestamp = 0L
-
-    // Estructura para los datos del CSV
-    data class CsvDataPoint(
-        val timestamp: Long,
-        val relativeTime: Long, // Tiempo relativo al momento de detección
-        val x: Double,
-        val y: Double,
-        val z: Double,
-        val xLPF: Double,
-        val yLPF: Double,
-        val zLPF: Double,
-        val xHPF: Double,
-        val yHPF: Double,
-        val zHPF: Double,
-        val svTOT: Double,
-        val svD: Double,
-        val svMaxMin: Double,
-        val z2: Double,
-        val falling: Double,
-        val impact: Double,
-        val lying: Double,
-        val peakAcceleration: Double,
-        val maxJerk: Double,
-        val fallType: String,
-        val orientationChanged: Boolean,
-        val isHorizontal: Boolean,
-        val isVertical: Boolean,
-        val phoneRaisePattern: Boolean,
-        val isInPocket: Boolean,  // Nuevo campo
-        val proximityValue: Float  // Nuevo campo
-    )
     // ============================================================
 
     private var timeoutFalling: Int = -1
@@ -226,156 +185,6 @@ class Detector private constructor() : SensorEventListener {
     // Enum para tipos de caída
     private enum class FallType {
         FORWARD, BACKWARD, LEFT, RIGHT, UNKNOWN
-    }
-
-    // ========== MÉTODOS PARA CSV LOGGING ==========
-
-    private fun startDataCollection() {
-        if (!CSV_LOGGING_ENABLED) return
-
-        isCollectingData = true
-        samplesCollected = 0
-        fallDetectionTimestamp = System.currentTimeMillis()
-        csvDataBuffer.clear()
-
-        // Capturar datos retrospectivos (1 segundo antes)
-        for (i in SAMPLES_BEFORE_FALL downTo 1) {
-            val idx = (buffers.position - i + N) % N
-            addDataPointToBuffer(fallDetectionTimestamp - (i * INTERVAL_MS.toLong()), -(i * INTERVAL_MS.toLong()), idx)
-        }
-
-        log(android.util.Log.INFO, "Started CSV data collection - Fall type: ${if (esFalsaCaida) "FALSE_POSITIVE" else "TRUE_FALL"}")
-    }
-
-    private fun addDataPointToBuffer(timestamp: Long, relativeTime: Long, bufferIndex: Int) {
-        if (!isCollectingData) return
-
-        val currentFallType = detectFallType()
-        val orientationChanged = isOrientationChanged()
-        val isHorizontal = isInHorizontalPosition()
-        val isVertical = isInVerticalPosition()
-        val phoneRaise = detectPhoneLookGesture()
-
-        val dataPoint = CsvDataPoint(
-            timestamp = timestamp,
-            relativeTime = relativeTime,
-            x = x[bufferIndex],
-            y = y[bufferIndex],
-            z = z[bufferIndex],
-            xLPF = xLPF[bufferIndex],
-            yLPF = yLPF[bufferIndex],
-            zLPF = zLPF[bufferIndex],
-            xHPF = xHPF[bufferIndex],
-            yHPF = yHPF[bufferIndex],
-            zHPF = zHPF[bufferIndex],
-            svTOT = svTOT[bufferIndex],
-            svD = svD[bufferIndex],
-            svMaxMin = svMaxMin[bufferIndex],
-            z2 = z2[bufferIndex],
-            falling = falling[bufferIndex],
-            impact = impact[bufferIndex],
-            lying = lying[bufferIndex],
-            peakAcceleration = peakAcceleration,
-            maxJerk = maxJerk,
-            fallType = currentFallType.toString(),
-            orientationChanged = orientationChanged,
-            isHorizontal = isHorizontal,
-            isVertical = isVertical,
-            phoneRaisePattern = phoneRaise,
-            isInPocket = isInPocket(),  // Usar método simple
-            proximityValue = proximityValue
-        )
-
-        csvDataBuffer.add(dataPoint)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    private fun updateDataCollection() {
-        if (!isCollectingData) return
-
-        // Añadir punto de datos actual
-        addDataPointToBuffer(System.currentTimeMillis(), System.currentTimeMillis() - fallDetectionTimestamp, buffers.position)
-
-        samplesCollected++
-
-        // Detener recolección después de capturar suficientes datos post-impacto
-        if (samplesCollected >= SAMPLES_AFTER_IMPACT) {
-            finishDataCollection()
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    private fun finishDataCollection() {
-        if (!isCollectingData || csvDataBuffer.isEmpty()) return
-
-        isCollectingData = false
-
-        try {
-            saveCsvData()
-            log(android.util.Log.INFO, "CSV data collection finished. ${csvDataBuffer.size} samples saved.")
-        } catch (e: Exception) {
-            log(android.util.Log.ERROR, "Error saving CSV data: ${e.message}")
-        }
-
-        csvDataBuffer.clear()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.KITKAT)
-    private fun saveCsvData() {
-        val context = this.context ?: return
-
-        // Crear directorio si no existe
-        val directory = File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "FallDetectionData")
-        if (!directory.exists()) {
-            directory.mkdirs()
-        }
-
-        // Nombre del archivo con timestamp
-        val dateFormat = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-        val timestamp = dateFormat.format(Date(fallDetectionTimestamp))
-        val fallTypeStr = if (esFalsaCaida) "FALSE_POSITIVE" else "TRUE_FALL"
-        val filename = "${fallTypeStr}_${timestamp}.csv"
-
-        val file = File(directory, filename)
-
-        FileWriter(file).use { writer ->
-            // Header del CSV
-            writer.append("timestamp,relative_time_ms,x,y,z,x_lpf,y_lpf,z_lpf,x_hpf,y_hpf,z_hpf,sv_tot,sv_d,sv_max_min,z2,falling,impact,lying,peak_acceleration,max_jerk,fall_type,orientation_changed,is_horizontal,is_vertical,phone_raise_pattern,is_in_pocket,proximity_value,is_false_positive\n")
-
-            // Datos
-            csvDataBuffer.forEach { point ->
-                writer.append("${point.timestamp},")
-                writer.append("${point.relativeTime},")
-                writer.append("${point.x},")
-                writer.append("${point.y},")
-                writer.append("${point.z},")
-                writer.append("${point.xLPF},")
-                writer.append("${point.yLPF},")
-                writer.append("${point.zLPF},")
-                writer.append("${point.xHPF},")
-                writer.append("${point.yHPF},")
-                writer.append("${point.zHPF},")
-                writer.append("${point.svTOT},")
-                writer.append("${point.svD},")
-                writer.append("${point.svMaxMin},")
-                writer.append("${point.z2},")
-                writer.append("${point.falling},")
-                writer.append("${point.impact},")
-                writer.append("${point.lying},")
-                writer.append("${point.peakAcceleration},")
-                writer.append("${point.maxJerk},")
-                writer.append("${point.fallType},")
-                writer.append("${point.orientationChanged},")
-                writer.append("${point.isHorizontal},")
-                writer.append("${point.isVertical},")
-                writer.append("${point.phoneRaisePattern},")
-                writer.append("${point.isInPocket},")
-                writer.append("${point.proximityValue},")
-                writer.append("${esFalsaCaida}\n")
-            }
-        }
-
-        log(android.util.Log.INFO, "CSV saved to: ${file.absolutePath}")
     }
 
     // ================================================
@@ -701,10 +510,6 @@ class Detector private constructor() : SensorEventListener {
         val svDAt: Double = sv(xHPF[at], yHPF[at], zHPF[at])
         svD[at] = svDAt
 
-        // Actualizar datos CSV si está recolectando (solo después de confirmación)
-        if (isCollectingData) {
-            updateDataCollection()
-        }
 
         // Actualizar maxJerk
         if (svDAt > maxJerk) {
@@ -788,10 +593,6 @@ class Detector private constructor() : SensorEventListener {
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastFallAlertTime < 10000) {
                 log(android.util.Log.DEBUG, "Skipping alert - too soon after last alert")
-                // Finalizar recolección de datos aunque no haya alerta
-                if (isCollectingData) {
-                    finishDataCollection()
-                }
                 return
             }
 
@@ -818,10 +619,6 @@ class Detector private constructor() : SensorEventListener {
                 peakAcceleration = 0.0
                 consecutiveLowSVCount = 0
                 maxJerk = 0.0
-                // Finalizar recolección de datos
-                if (isCollectingData) {
-                    finishDataCollection()
-                }
                 return
             }
 
@@ -844,9 +641,6 @@ class Detector private constructor() : SensorEventListener {
 
                 // *** AQUÍ ES DONDE VERIFICAMOS EL SENSOR DE PROXIMIDAD ***
                 if (isInPocket()) {
-                    // SOLO AQUÍ iniciar la recolección de datos CSV - cuando se CONFIRMA la caída
-                    startDataCollection()
-
                     lastFallAlertTime = currentTime
                     val context = this.context
                     if (context != null && FallDetectionSettings.isFallDetectionEnabled(context)) {
@@ -879,11 +673,6 @@ class Detector private constructor() : SensorEventListener {
                 }
             } else {
                 log(android.util.Log.DEBUG, "Weak evidence for fall - skipping alert")
-            }
-
-            // FINALIZAR RECOLECCIÓN DE DATOS CSV solo si se inició
-            if (isCollectingData) {
-                finishDataCollection()
             }
 
             // Resetear variables
@@ -979,7 +768,6 @@ class Detector private constructor() : SensorEventListener {
             log(android.util.Log.WARN, "Proximity sensor not available - fall detection will work normally")
         }
 
-        log(android.util.Log.INFO, "CSV Logging configured - Mode: ${if (esFalsaCaida) "FALSE_POSITIVE" else "TRUE_FALL"}")
         log(android.util.Log.INFO, "Fall alerts will only show when device is IN POCKET (proximity sensor detects object)")
     }
 

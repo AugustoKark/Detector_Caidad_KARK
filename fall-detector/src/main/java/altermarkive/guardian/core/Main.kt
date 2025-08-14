@@ -37,9 +37,13 @@ class Main : AppCompatActivity() {
         // Load the EULA
         val dialog = Dialog(context)
         dialog.setContentView(R.layout.eula)
-        dialog.setTitle("EULA")
+        dialog.setTitle("Términos y Condiciones")
+        
+        // Hacer el diálogo no cancelable (usuario DEBE aceptar o rechazar)
+        dialog.setCancelable(false)
+        dialog.setCanceledOnTouchOutside(false)
 
-        // Buscar el botón con el ID correcto según tu layout
+        // Buscar el botón de aceptar
         val acceptButton = dialog.findViewById<View>(R.id.acceptButton) as com.google.android.material.button.MaterialButton
         acceptButton.setOnClickListener {
             // Marcar como aceptado en SharedPreferences
@@ -53,6 +57,24 @@ class Main : AppCompatActivity() {
             // Navegar a la pestaña de Settings
             val navView = findViewById<BottomNavigationView>(R.id.navigation)
             navView.selectedItemId = R.id.settings
+        }
+        
+        // Buscar el texto de "No acepto" y configurar su acción
+        val declineText = dialog.findViewById<android.widget.TextView>(R.id.declineText)
+        declineText.setOnClickListener {
+            // Usuario rechazó los términos - cerrar la aplicación
+            finishAndRemoveTask()
+        }
+        
+        // Interceptar el botón back también para cerrar la app
+        dialog.setOnKeyListener { _, keyCode, _ ->
+            if (keyCode == android.view.KeyEvent.KEYCODE_BACK) {
+                // Si presiona back sin aceptar, cerrar la app
+                finishAndRemoveTask()
+                true
+            } else {
+                false
+            }
         }
 
         val layout = WindowManager.LayoutParams()

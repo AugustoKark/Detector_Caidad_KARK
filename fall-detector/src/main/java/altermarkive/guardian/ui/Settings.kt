@@ -1,7 +1,9 @@
 package altermarkive.guardian.ui
 
+import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
@@ -19,6 +21,12 @@ class Settings : PreferenceFragmentCompat() {
             // Usar la misma función que el botón de emergencia
             Alarm.alert(requireActivity().applicationContext)
            // Toast.makeText(context, "Alerta de prueba enviada", Toast.LENGTH_SHORT).show()
+            true
+        }
+        
+        // Configurar click en Términos y Condiciones
+        findPreference<Preference>("privacy_policy")?.setOnPreferenceClickListener {
+            showTermsAndConditions()
             true
         }
 
@@ -87,6 +95,31 @@ class Settings : PreferenceFragmentCompat() {
         }
     }
 
+
+    private fun showTermsAndConditions() {
+        val dialog = Dialog(requireContext())
+        dialog.setContentView(R.layout.eula)
+        dialog.setTitle("Términos y Condiciones")
+        
+        // Buscar el botón de aceptar y cambiar su comportamiento
+        val acceptButton = dialog.findViewById<com.google.android.material.button.MaterialButton>(R.id.acceptButton)
+        acceptButton.text = "Cerrar"
+        acceptButton.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        // Configurar el diálogo para que sea de pantalla completa
+        val layout = WindowManager.LayoutParams()
+        val window = dialog.window
+        window?.let {
+            layout.copyFrom(it.attributes)
+            layout.width = WindowManager.LayoutParams.MATCH_PARENT
+            layout.height = WindowManager.LayoutParams.MATCH_PARENT
+            it.attributes = layout
+        }
+        
+        dialog.show()
+    }
 
     private fun getAppVersion(): String {
         return try {
