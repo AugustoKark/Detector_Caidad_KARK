@@ -24,6 +24,9 @@ class FallAlertActivity : AppCompatActivity() {
     private var countdownTimer: CountDownTimer? = null
     private var isAlertCancelled = false
     private var countdownMediaPlayer: MediaPlayer? = null
+    private var isConnectedToService = false
+    private var serviceCheckHandler = Handler(Looper.getMainLooper())
+    private var serviceCheckRunnable: Runnable? = null
 
     companion object {
         private const val VIBRATION_PATTERN_DURATION_MS = 1000L
@@ -42,7 +45,7 @@ class FallAlertActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val prefs = getSharedPreferences("guardian_prefs", Context.MODE_PRIVATE)
-        countdownSeconds = prefs.getInt("fall_detection_delay", 30) // 30 es el valor por defecto
+        countdownSeconds = prefs.getInt("fall_detection_delay", 30)
 
         // CRÍTICO: Configurar la pantalla para emergencia ANTES de setContentView
         setupScreenForEmergency()
@@ -52,19 +55,21 @@ class FallAlertActivity : AppCompatActivity() {
         // Despertar y desbloquear el dispositivo programáticamente
         wakeUpAndUnlockDevice()
 
-        // Iniciar vibración
-        startVibration()
-
-        // Iniciar sonido de alerta
-        startCountdownSound()
-
         // Configurar el SeekBar
         setupSeekBarListener()
 
-        // Iniciar la cuenta regresiva
-        startCountdown()
-
-        Log.i(TAG, "FallAlertActivity iniciada correctamente")
+        // Verificar si hay un countdown en progreso
+        val (isActive, remainingSeconds) = FallCountdownService.getCountdownStatus()
+        
+        if (isActive) {
+            // Conectarse al servicio en progreso
+            connectToRunningService(remainingSeconds)
+            Log.i(TAG, "FallAlertActivity conectada a servicio en progreso - $remainingSeconds segundos restantes")
+        } else {
+            // No hay servicio en progreso, iniciar countdown normal
+            startStandaloneCountdown()
+            Log.i(TAG, "FallAlertActivity iniciada como countdown standalone")
+        }
     }
 
     private fun setupScreenForEmergency() {
@@ -318,31 +323,106 @@ class FallAlertActivity : AppCompatActivity() {
         Log.d(TAG, "Cuenta regresiva iniciada: ${countdownSeconds} segundos")
     }
 
+    private fun connectToRunningService(remainingSeconds: Int) {
+        isConnectedToService = true
+        
+        // No iniciar nuevas alertas de vibración/sonido ya que el servicio las maneja
+        
+        // Mostrar el countdown conectado al servicio
+        startServiceConnectedCountdown(remainingSeconds)
+    }
+    
+    private fun startStandaloneCountdown() {
+        isConnectedToService = false
+        
+        // Iniciar vibración
+        startVibration()
+
+        // Iniciar sonido de alerta
+        startCountdownSound()
+
+        // Iniciar la cuenta regresiva standalone
+        startCountdown()
+    }
+    
+    private fun startServiceConnectedCountdown(initialSeconds: Int) {
+        val countdownTextView = findViewById<android.widget.TextView>(R.id.countdownText)
+        val infoTextView = findViewById<android.widget.TextView>(R.id.infoText)
+        
+        // Inicializar con los segundos del servicio
+        countdownTextView.text = initialSeconds.toString()
+        infoTextView.text = "Se detectó una caída. Se enviará alerta automáticamente."
+        
+        // Monitorear el estado del servicio cada segundo
+        serviceCheckRunnable = object : Runnable {
+            override fun run() {
+                val (isActive, secondsRemaining) = FallCountdownService.getCountdownStatus()
+                
+                if (isActive && !isAlertCancelled) {
+                    // Actualizar UI con el estado del servicio
+                    countdownTextView.text = secondsRemaining.toString()
+                    
+                    // Cambiar el mensaje cuando queden pocos segundos
+                    if (secondsRemaining <= 10) {
+                        infoTextView.text = "¡URGENTE! SE ENVIARÁ UNA ALERTA EN ${secondsRemaining}s"
+                        
+                        // Hacer parpadear el texto de cuenta regresiva para último tramo
+                        if (secondsRemaining % 2 == 0) {
+                            countdownTextView.alpha = 0.4f
+                        } else {
+                            countdownTextView.alpha = 1.0f
+                        }
+                    }
+                    
+                    // Continuar monitoreando
+                    serviceCheckHandler.postDelayed(this, 1000)
+                } else {
+                    // El servicio terminó o se canceló
+                    if (!isAlertCancelled) {
+                        countdownTextView.text = "0"
+                        infoTextView.text = "Enviando alerta..."
+                        // Cerrar la actividad después de un breve delay
+                        serviceCheckHandler.postDelayed({ finish() }, 2000)
+                    }
+                }
+            }
+        }
+        serviceCheckRunnable?.let { serviceCheckHandler.post(it) }
+    }
+
     private fun cancelAlert() {
         isAlertCancelled = true
-        countdownTimer?.cancel()
-        VibrationUtils.stopVibration(this)
-
-        // Detener sonido de cuenta regresiva
-        releaseMediaPlayer()
-
-        // Registrar que se canceló la alerta
+        
+        if (isConnectedToService) {
+            // Cancelar el servicio
+            FallCountdownService.cancelCountdown(this)
+            Log.i(TAG, "Servicio de countdown cancelado por el usuario")
+        } else {
+            // Cancelar countdown standalone
+            countdownTimer?.cancel()
+            VibrationUtils.stopVibration(this)
+            releaseMediaPlayer()
+            
+            // Reportar la cancelación al servidor para análisis de falsos positivos
+            val position = Positioning.singleton
+            val location = position?.getLastKnownLocation()
+            try {
+                ServerAdapter.reportFallAlertCancelled(
+                    applicationContext,
+                    location?.latitude,
+                    location?.longitude,
+                    Battery.level(applicationContext)
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "Error reporting cancellation: ${e.message}")
+            }
+        }
+        
+        // Detener monitoreo del servicio
+        serviceCheckRunnable?.let { serviceCheckHandler.removeCallbacks(it) }
+        
         Log.i(TAG, "Alerta de caída cancelada por el usuario")
         Guardian.say(applicationContext, Log.INFO, TAG, "Alerta de caída cancelada")
-
-        // Reportar la cancelación al servidor para análisis de falsos positivos
-        val position = Positioning.singleton
-        val location = position?.getLastKnownLocation()
-        try {
-            ServerAdapter.reportFallAlertCancelled(
-                applicationContext,
-                location?.latitude,
-                location?.longitude,
-                Battery.level(applicationContext)
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "Error reporting cancellation: ${e.message}")
-        }
 
         finish()
     }
@@ -394,6 +474,10 @@ class FallAlertActivity : AppCompatActivity() {
         countdownTimer?.cancel()
         VibrationUtils.stopVibration(this)
         releaseMediaPlayer()
+        
+        // Limpiar monitoreo del servicio
+        serviceCheckRunnable?.let { serviceCheckHandler.removeCallbacks(it) }
+        
         super.onDestroy()
     }
 

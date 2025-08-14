@@ -164,6 +164,13 @@
             </intent-filter>
         </service>
 
+        <service
+            android:name="altermarkive.guardian.alerts.FallCountdownService"
+            android:exported="false"
+            android:label="Fall Countdown Service"
+            android:foregroundServiceType="dataSync">
+        </service>
+
     </application>
 
 </manifest>

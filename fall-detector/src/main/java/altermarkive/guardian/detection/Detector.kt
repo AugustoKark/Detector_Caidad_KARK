@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import android.content.Intent
 import altermarkive.guardian.utils.VibrationUtils
+import altermarkive.guardian.alerts.FallCountdownService
 
 class Detector private constructor() : SensorEventListener {
     var context: Guardian? = null
@@ -1187,39 +1188,34 @@ class Detector private constructor() : SensorEventListener {
 
     private fun showFallAlert(context: Context) {
         try {
-            // INMEDIATAMENTE iniciar vibración y sonido antes de mostrar la pantalla
-            startImmediateAlert(context)
-            
             // Modificar el título/mensaje de la alerta según el modo
             if (esFalsaCaida) {
-                // En modo de recolección de falsos positivos, mostrar mensaje diferente
-                log(android.util.Log.INFO, "FALSE_POSITIVE detected in pocket - showing confirmation alert")
+                log(android.util.Log.INFO, "FALSE_POSITIVE detected in pocket - starting countdown service")
             } else {
-                log(android.util.Log.INFO, "TRUE_FALL detected in pocket - showing emergency alert")
+                log(android.util.Log.INFO, "TRUE_FALL detected in pocket - starting countdown service")
             }
 
             // Asegurar que el contexto es de aplicación
             val appContext = context.applicationContext
 
-            // Crear intent con flags específicos para emergencia
-            val intent = Intent(appContext, FallAlertActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                        Intent.FLAG_ACTIVITY_NO_HISTORY or
-                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
-            }
+            // *** NUEVO FLUJO: Iniciar el servicio de countdown que maneja todo ***
+            FallCountdownService.startCountdown(appContext, esFalsaCaida)
 
-            // Iniciar la actividad
-            appContext.startActivity(intent)
-
-            log(android.util.Log.INFO, "FallAlertActivity launched successfully")
+            log(android.util.Log.INFO, "FallCountdownService started successfully")
 
         } catch (e: Exception) {
-            log(android.util.Log.ERROR, "Error launching FallAlertActivity: ${e.message}")
+            log(android.util.Log.ERROR, "Error starting FallCountdownService: ${e.message}")
 
-            // Fallback: al menos hacer vibrar y sonar alarma
-            startImmediateAlert(context)
+            // Fallback: iniciar vibración y luego llamar directamente
+            try {
+                startImmediateAlert(context)
+                // Dar un poco de tiempo para que se note la vibración y luego proceder
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    Alarm.alert(context) // Llamar directamente sin interfaz
+                }, 3000) // 3 segundos de vibración antes de la llamada automática
+            } catch (fallbackError: Exception) {
+                log(android.util.Log.ERROR, "Fallback alert also failed: ${fallbackError.message}")
+            }
         }
     }
     
