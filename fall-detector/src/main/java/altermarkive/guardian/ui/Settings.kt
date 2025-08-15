@@ -89,6 +89,41 @@ class Settings : PreferenceFragmentCompat() {
                 true
             }
         }
+
+        findPreference<SwitchPreference>("safe_zone_monitoring_enabled")?.apply {
+            // Obtener estado desde SafeZoneManager
+            val safeZoneManager = altermarkive.guardian.safezone.SafeZoneManager
+            isChecked = safeZoneManager.isMonitoringEnabled(requireContext())
+            
+            // Mostrar estado actual en el summary
+            updateSafeZoneMonitoringSummary(isChecked)
+
+            setOnPreferenceChangeListener { preference, newValue ->
+                val isEnabled = newValue as Boolean
+                
+                // Usar la misma función que el switch en SafeZoneFragment
+                safeZoneManager.setMonitoringEnabled(requireContext(), isEnabled)
+                
+                // Iniciar o detener el servicio según corresponda
+                if (isEnabled) {
+                    altermarkive.guardian.safezone.SafeZoneMonitoringService.startService(requireContext())
+                } else {
+                    altermarkive.guardian.safezone.SafeZoneMonitoringService.stopService(requireContext())
+                }
+                
+                updateSafeZoneMonitoringSummary(isEnabled)
+
+                // Mostrar mensaje de confirmación
+                val message = if (isEnabled) {
+                    "Monitoreo de zonas seguras activado"
+                } else {
+                    "Monitoreo de zonas seguras desactivado"
+                }
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+
+                true
+            }
+        }
     }
 
     private fun updateFallDetectionSummary(isEnabled: Boolean) {
@@ -97,6 +132,16 @@ class Settings : PreferenceFragmentCompat() {
                 "Guardian está monitoreando caídas activamente"
             } else {
                 "La detección de caídas está desactivada"
+            }
+        }
+    }
+
+    private fun updateSafeZoneMonitoringSummary(isEnabled: Boolean) {
+        findPreference<SwitchPreference>("safe_zone_monitoring_enabled")?.apply {
+            summary = if (isEnabled) {
+                "Guardian está monitoreando las zonas seguras configuradas"
+            } else {
+                "El monitoreo de zonas seguras está desactivado"
             }
         }
     }
@@ -169,5 +214,12 @@ class Settings : PreferenceFragmentCompat() {
         super.onResume()
         // Actualizar el estado del contacto cuando regrese a esta pantalla
         updateContactPreference()
+        
+        // Actualizar estado del switch de zonas seguras
+        findPreference<SwitchPreference>("safe_zone_monitoring_enabled")?.apply {
+            val safeZoneManager = altermarkive.guardian.safezone.SafeZoneManager
+            isChecked = safeZoneManager.isMonitoringEnabled(requireContext())
+            updateSafeZoneMonitoringSummary(isChecked)
+        }
     }
 }

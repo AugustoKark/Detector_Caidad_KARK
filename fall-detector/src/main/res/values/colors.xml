@@ -6,6 +6,12 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="red_emergency">#D32F2F</color>
+    
+    <!-- Colores para switches -->
+    <color name="switch_thumb_color_on">#4CAF50</color>
+    <color name="switch_thumb_color_off">#9E9E9E</color>
+    <color name="switch_track_color_on">#81C784</color>
+    <color name="switch_track_color_off">#E0E0E0</color>
 
 
 </resources>

@@ -53,6 +53,22 @@
 
     </PreferenceCategory>
 
+    <!-- Categoría de Zonas Seguras -->
+    <PreferenceCategory
+        android:title="Monitoreo de Zonas Seguras"
+        android:icon="@drawable/ic_location"
+        app:iconSpaceReserved="true">
+
+        <SwitchPreference
+            android:key="safe_zone_monitoring_enabled"
+            android:title="Activar Monitoreo de Zonas"
+            android:summary="Guardian monitoreará cuando salgas de las zonas seguras configuradas"
+            android:defaultValue="false"
+            android:icon="@drawable/ic_location"
+            app:iconSpaceReserved="true" />
+
+    </PreferenceCategory>
+
     <!-- Categoría de Privacidad y Datos -->
     <PreferenceCategory
         android:title="Privacidad y Legal"
