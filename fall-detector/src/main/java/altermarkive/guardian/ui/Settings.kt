@@ -10,7 +10,10 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import altermarkive.guardian.R
 import altermarkive.guardian.alerts.Alarm
+import altermarkive.guardian.alerts.Contact
 import androidx.preference.SwitchPreference
+import androidx.preference.PreferenceManager
+import androidx.core.content.ContextCompat
 
 class Settings : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
@@ -29,6 +32,9 @@ class Settings : PreferenceFragmentCompat() {
             showTermsAndConditions()
             true
         }
+        
+        // Verificar estado del contacto de emergencia
+        updateContactPreference()
 
         // Configurar versión de la app
         findPreference<Preference>("app_version")?.apply {
@@ -121,6 +127,34 @@ class Settings : PreferenceFragmentCompat() {
         dialog.show()
     }
 
+    private fun updateContactPreference() {
+        val contactKey = getString(R.string.contact)
+        findPreference<Preference>(contactKey)?.apply {
+            val savedContact = Contact[requireContext()]
+            
+            if (savedContact.isNullOrEmpty()) {
+                // No hay contacto configurado - usar texto con color rojo
+                summary = "⚠️ No se ha configurado ningún teléfono de contacto"
+                // Usar icono de emergencia existente para indicar advertencia
+                icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_emergency)
+            } else {
+                // Hay contacto configurado
+                val maskedPhone = maskPhoneNumber(savedContact)
+                summary = "Contacto configurado: $maskedPhone"
+                icon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_phone_24)
+            }
+        }
+    }
+    
+    private fun maskPhoneNumber(phone: String): String {
+        // Mostrar solo los últimos 4 dígitos por privacidad
+        return if (phone.length > 4) {
+            "***-***-" + phone.takeLast(4)
+        } else {
+            phone
+        }
+    }
+
     private fun getAppVersion(): String {
         return try {
             requireContext().packageManager
@@ -129,5 +163,11 @@ class Settings : PreferenceFragmentCompat() {
         } catch (e: Exception) {
             "1.0.0"
         }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Actualizar el estado del contacto cuando regrese a esta pantalla
+        updateContactPreference()
     }
 }

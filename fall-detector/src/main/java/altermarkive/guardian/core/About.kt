@@ -10,12 +10,14 @@ import android.widget.TextView
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.preference.PreferenceManager
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 
 class About : Fragment(), View.OnClickListener {
@@ -50,13 +52,23 @@ class About : Fragment(), View.OnClickListener {
         super.onStart()
         refreshPermissions(true)
     }
+    
+    override fun onResume() {
+        super.onResume()
+        // Actualizar el estado cuando regrese a esta pantalla
+        refreshPermissions(false)
+    }
 
     private fun refreshPermissions(request: Boolean) {
         val statusText: String
         val statusColor: Int
         val logoColor: Int
 
-        if (permitted(request)) {
+        // Verificar permisos Y estado de detección de caídas
+        val hasPermissions = permitted(request)
+        val fallDetectionEnabled = isFallDetectionEnabled()
+
+        if (hasPermissions && fallDetectionEnabled) {
             statusText = "ACTIVO"
             statusColor = ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark)
             logoColor = ContextCompat.getColor(requireContext(), android.R.color.holo_green_dark)
@@ -96,6 +108,11 @@ class About : Fragment(), View.OnClickListener {
             }
         }
         return granted
+    }
+    
+    private fun isFallDetectionEnabled(): Boolean {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        return prefs.getBoolean("fall_detection_enabled", true) // true es el valor por defecto
     }
 
     private val requestPermissions =
