@@ -37,10 +37,7 @@ class Telephony : BroadcastReceiver() {
                 @Suppress("DEPRECATION")
                 val contact = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)
                 Guardian.say(context, android.util.Log.WARN, TAG, "Receiving call from ${contact.toString()}")
-                if (Contact.check(context, contact)) {
-                    Guardian.say(context, android.util.Log.WARN, TAG, "Answering the call")
-                    answer(context)
-                }
+                // Auto-answer functionality removed - calls are no longer answered automatically
                 return
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {

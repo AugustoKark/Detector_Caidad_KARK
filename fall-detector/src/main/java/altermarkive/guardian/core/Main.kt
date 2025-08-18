@@ -90,6 +90,9 @@ class Main : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Force light theme regardless of system setting
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO)
+        
         // *** VERIFICAR SI HAY COUNTDOWN EN PROGRESO ANTES DE MOSTRAR LA APP ***
         val (isCountdownActive, remainingSeconds) = FallCountdownService.getCountdownStatus()
         

@@ -21,6 +21,9 @@ import androidx.preference.PreferenceManager
 class Contact : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Force light theme regardless of system setting
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO)
         setContentView(R.layout.contact)
         val edit = findViewById<View>(R.id.contact) as EditText
         edit.setText(Companion[this])

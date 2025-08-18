@@ -44,6 +44,9 @@ class FallAlertActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Force light theme regardless of system setting
+        androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO)
 
         val prefs = getSharedPreferences("guardian_prefs", Context.MODE_PRIVATE)
         countdownSeconds = prefs.getInt("fall_detection_delay", 30)
