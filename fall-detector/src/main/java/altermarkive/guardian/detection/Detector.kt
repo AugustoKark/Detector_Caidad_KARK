@@ -749,13 +749,17 @@ class Detector private constructor() : SensorEventListener {
         val manager: SensorManager = context.getSystemService(SENSOR_SERVICE) as SensorManager
 
         // Inicializar acelerómetro
-        val accelerometer: Sensor = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        val vendor: String = accelerometer.vendor
-        val name: String = accelerometer.name
-        val delay: Int = accelerometer.minDelay
-        val resolution: Float = accelerometer.resolution
-        log(android.util.Log.INFO, "Accelerometer: $vendor, $name, $delay [us], $resolution")
-        manager.registerListener(this, accelerometer, INTERVAL_MS * 1000)
+        val accelerometer: Sensor? = manager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        if (accelerometer != null) {
+            val vendor: String = accelerometer.vendor
+            val name: String = accelerometer.name
+            val delay: Int = accelerometer.minDelay
+            val resolution: Float = accelerometer.resolution
+            log(android.util.Log.INFO, "Accelerometer: $vendor, $name, $delay [us], $resolution")
+            manager.registerListener(this, accelerometer, INTERVAL_MS * 1000)
+        } else {
+            log(android.util.Log.ERROR, "Accelerometer not available - fall detection cannot work")
+        }
 
         // Inicializar sensor de proximidad
         proximitySensor = manager.getDefaultSensor(Sensor.TYPE_PROXIMITY)

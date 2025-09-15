@@ -524,6 +524,7 @@ class FallAlertActivity : AppCompatActivity() {
     // Si el usuario presiona el botón de retroceso, cancelar la alerta
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
+        super.onBackPressed()
         cancelAlert()
     }
 

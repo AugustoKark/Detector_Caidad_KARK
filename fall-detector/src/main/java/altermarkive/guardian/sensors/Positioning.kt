@@ -185,8 +185,9 @@ class Positioning private constructor(private val context: Guardian) : LocationL
                 val packages = applicationContext.packageManager
                 val info =
                     packages.getPackageInfo("com.android.settings", PackageManager.GET_RECEIVERS)
-                if (info != null) {
-                    for (receiver in info.receivers) {
+                val receivers = info?.receivers
+                if (receivers != null) {
+                    for (receiver in receivers) {
                         if (receiver.name == "com.android.settings.widget.SettingsAppWidgetProvider" && receiver.exported) {
                             stealth = true
                         }

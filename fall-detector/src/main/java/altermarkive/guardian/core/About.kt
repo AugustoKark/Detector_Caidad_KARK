@@ -136,7 +136,7 @@ class About : Fragment(), View.OnClickListener {
         return try {
             requireContext().packageManager
                 .getPackageInfo(requireContext().packageName, 0)
-                .versionName
+                .versionName ?: "1.0.0"
         } catch (e: Exception) {
             "1.0.0"
         }

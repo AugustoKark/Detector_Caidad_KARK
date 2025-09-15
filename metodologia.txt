@@ -1,0 +1,169 @@
+Paso 1: Análisis del estado de la cuestión:
+La idea inicial del proyecto consistió en programar un dispositivo que detectara caídas en personas de la tercera edad y disparara una alarma o aviso remoto a familiares o allegados para que pudieran acudir en ayuda. De gran utilidad para todos los adultos mayores con sus capacidades cognitivas conservadas y en condiciones de vivir solos, porque podrían manejarse de manera autónoma, sabiendo que ante cualquier problema de caída o accidente, alguien se enteraría de manera inmediata de lo ocurrido. A su vez, desde la perspectiva de los hijos o de los responsables de los adultos mayores, este dispositivo se convierte en una herramienta que ofrece tranquilidad y la posibilidad de acudir en ayuda. 
+	Para analizar la factibilidad del desarrollo del dispositivo y la originalidad del proyecto, es que realizó una revisión sistemática de papers académicos y literatura científica especializada. En el análisis la bibliografía actualizada sobre el tema, se puso especial atención en los algoritmos de detección de caídas basados en acelerómetro, técnicas de procesamiento de señales para sensores móviles, comparativas de eficiencia energética en aplicaciones de monitoreo continuo y estudios de precisión y especificidad en sistemas de detección automática.
+	De su estudio se extrajeron algunas consideraciones que permitieron tomar algunas decisiones iniciales que ordenaron y orientaron el trabajo. Entre ellas se pueden mencionar: 
+Los modelos ML requieren procesamiento intensivo que degrada la batería, comprometiendo la disponibilidad 24/7 que requiere una aplicación de este tipo. De allí que se decidió descartar los modelos de Machine Learning o Inteligencia Artificial debido a consideraciones de optimización energética
+Los algoritmos determinísticos ofrecen latencia mínima al procesar las señales directamente desde el dispositivo, por ello se pensó en el diseño de algoritmos puramente matemáticos para abordar las caídas
+
+Paso 2: Planificación y Definición de Alcance 
+	Luego del análisis del estado de la cuestión, se llevó a cabo la definición formal del alcance del proyecto y la estructuración de la metodología de desarrollo. 
+Para poder llevar a cabo el proceso de definición formal del alcance del proyecto, hubo que identificar usuarios, necesidades y alcances posibles del MVP. Para la delimitación de estas variables se realizó una encuesta a familiares adultos mayores de 70 años que vivían con cierta independencia o solos. Las encuestas consistieron en preguntas sobre los requerimientos o necesidades antes un posible accidente. 
+	El resultado de las encuestas permitió obtener un mapeo exhaustivo de necesidades para distinguir entre funcionalidades críticas y deseables y posibilitó la delimitación de:
+
+tipo de usuario: 
+Uso del dispositivo disparador de la alarma: adultos mayores o personas con limitaciones motrices.
+Uso del dispositivo receptor de la notificación: familiares, cuidadores, responsables con adultos mayores a cargo .
+
+funcionalidades: Notificación a la unidad receptora de caídas o movimientos bruscos que puedan generar lesiones.
+
+beneficios:
+En los adultos mayores: independencia, seguridad, confianza
+En los adultos receptores de las notificaciones: tranquilidad, seguridad de que van a estar informados de situaciones que requieran intervención
+
+	Se desarrollaron historias de usuario siguiendo el formato estándar "Como [tipo de usuario] quiero [funcionalidad] para [beneficio/objetivo]", utilizando herramientas tipo Kanban para el tracking de historias.
+
+	Todos los datos recopilados a partir de la bibliografía y las encuestas ayudaron a la definición de un MVP con las características mínimas para un producto viable. 
+Se adoptó Scrum como metodología ágil de gestión de proyecto.
+
+Paso 3: Reunión de Sprint Planning. Definición de objetivos y temas preliminares 
+
+	El día 11 de abril se realizó una reunión formal de Sprint Planning con el especialista supervisor del proyecto. En esa oportunidad se definieron los objetivos específicos del primer sprint., se abordaron los temas que guiarían el desarrollo inicial y se estableció un sprint backlog.
+Paso 4:Implementación de Capa de Sensores 
+
+La cuarta semana se dedicó a la implementación técnica del sistema de adquisición de datos de sensores.
+En esta fase se tomaron las siguientes decisiones tecnológicas:
+adopción de Android nativo desarrollado en Kotlin. 
+selección de una versión mínima para maximizar la compatibilidad, 
+escoger el patrón arquitectónico MVVM para una separación clara de responsabilidades.
+
+	El desarrollo se centró en la integración con el SensorManager de Android, implementando específicamente el TYPE_ACCELEROMETER con una frecuencia de muestreo de 50Hz, a partir de la implementación de intervalos de 20ms entre muestras y gestionando los callbacks a través de SensorEventListener. 
+
+Se aplicaron los siguientes filtros digitales: 
+un filtro pasa-bajos para eliminar ruido y suavizar lecturas erráticas,
+un filtro pasa-altos para resaltar cambios bruscos necesarios para la detección de eventos, 
+un promedio móvil para estabilizar las señales y reducir las variaciones menores.
+
+	Se utilizó Android Studio como IDE principal, desarrollado completamente en Kotlin, y realizando testing extensivo en dispositivos físicos para validar el comportamiento de los sensores, complementado con Android Debug para monitoreo en tiempo real durante el desarrollo.
+Paso 5: Desarrollo de Algoritmos de Detección:
+La quinta semana, se enfocó en la implementación de algoritmos de detección de caídas basados directamente en la investigación bibliográfica previa. Se desarrolló un sistema de detección multi-fase que incluía monitoreo continuo para analizar patrones.
+Se implementó una interfaz gráfica básica que permitiera la visualización en tiempo real de los datos, incluyendo gráficos de los ejes X, Y, Z del acelerómetro, indicadores del estado actual del algoritmo de detección, y un log de eventos para facilitar el debugging.
+	Durante el desarrollo de la capa algorítmica, se implementó un sistema de detección estructurado en tres fases secuenciales que permitieron confirmar una caída minimizando la probabilidad de falsos positivos.
+	La primera de fase consistió en la detección de un estado de caída libre. Para ello se definió un valor de tolerancia mínimo en 0.6G. En el momento en que la fuerza G, registrada por el acelerómetro, fuera inferior al umbral preestablecido, se activarían las flags que iniciarían el proceso de detección de una posible caída y se habilitarían las fases subsiguientes para su validación.
+	La segunda fase tuvo como objetivo identificar la presencia del impacto (golpe) luego de una caída. Para ello había que establecer un patrón de transición desde la caída libre al impacto. Esto sólo puede ser detectado si tras un breve periodo en el que se manifestó la disminución de la gravedad, ocurre una aceleración brusca, producida por un impacto. Este patrón de transición es altamente indicativo de una caída real. 
+	Finalmente, la tercera fase se centró en el análisis del comportamiento posterior al impacto. En esta etapa el algoritmo debería verificar la presencia de un lapso de inmovilidad, medido a través de la estabilidad de las lecturas del acelerómetro. Este criterio se fundamentó en la observación de los comportamientos post caída. Si este periodo de quietud no es detectado, el sistema descarta la caída como válida, restablece las flags y continúa con el monitoreo en tiempo real. 
+	Las tres fases descriptas (1. la detección de un estado de caída libre, 2. presencia del impacto y 3. presencia de un lapso de inmovilidad) se diseñaron para garantizar la detección de una caída..
+El desarrollo continuó con el perfeccionamiento del algoritmo de detección de caídas, refinando los parámetros y umbrales previamente establecidos para mejorar la precisión. Durante esta fase se implementaron ajustes en los filtros digitales y se optimizaron las fases de detección para aumentar la confiabilidad del sistema. 
+Si bien los valores umbral y las condiciones de cada fase fueron definidos inicialmente a partir de datos orientativos, su calibración final requirió un proceso iterativo de prueba y error. Durante este periodo, se realizaron numerosas pruebas controladas y simulaciones de caídas en distintos escenarios con el objetivo de ajustar la sensibilidad del sistema. Este trabajo permitió refinar parámetros como el valor exacto del umbral de caída libre, la magnitud mínima de impacto y la duración del periodo de inmovilidad post-impacto, hasta alcanzar un equilibrio entre la capacidad de detección y la reducción de falsos positivos en condiciones reales de uso.
+Paralelamente, se desarrolló una funcionalidad de botón de pánico que permitía activar manualmente el sistema de alerta sin necesidad de esperar a que ocurriera una caída real, proporcionando una opción de emergencia directa para situaciones donde el usuario requiriera asistencia inmediata a través de la manipulación del dispositivo.
+La implementación del mecanismo de configuración de contacto de emergencia  estableció la base para todo el sistema de comunicaciones de emergencia. Se desarrolló una interfaz que permitía al usuario seleccionar y configurar un contacto específico desde su agenda telefónica. Una vez configurado el contacto, se implementó la funcionalidad de llamada automática que se activaba cuando se detectaba una caída confirmada .
+Inicialmente se exploró la posibilidad de integrar WhatsApp como canal de comunicación debido a su popularidad y confiabilidad, sin embargo, se determinó que no existían soluciones gratuitas viables para la integración automática de WhatsApp que cumplieran con los requisitos del proyecto. Esta limitación llevó a la decisión de implementar el envío de SMS como alternativa principal.
+Ante la importancia de lograr un óptimo funcionamiento de la aplicación, es que se decidió implementar una vista de cuenta regresiva como mecanismo de confirmación antes de enviar las alertas. Esta interfaz se activa automáticamente cuando el algoritmo detecta una posible caída y muestra una cuenta regresiva configurable que le permite al usuario cancelar la alerta en caso de falsos positivos. La implementación incluyó elementos visuales claros como un contador numérico prominente, indicadores de progreso y un mecanismo de cancelación intuitivo que requiere una acción deliberada del usuario para detener el proceso de alerta. Durante el período de cuenta regresiva, el sistema también genera feedback auditivo y táctil para asegurar que el usuario sea consciente de la activación inminente del sistema de emergencia.
+
+	La funcionalidad se completó con el desarrollo de una pestaña de configuración que proporciona al usuario control granular sobre el comportamiento del sistema. Esta sección permite habilitar o deshabilitar completamente el detector de caídas, ofreciendo flexibilidad en aquellas situaciones donde el monitoreo continuo no es necesario o deseado. Además, se implementó la personalización del tiempo de cuenta regresiva, lo que permite a los usuarios ajustar la duración según sus necesidades específicas como la capacidad de respuesta individual o las preferencias personales. La interfaz de configuración se diseñó siguiendo principios de usabilidad, con controles claros y validación en tiempo real para asegurar que los valores configurados fueran apropiados y funcionalmente válidos.
+
+
+Paso 6: Optimización del Sistema de Comunicación de Emergencia
+
+En una primera etapa del desarrollo, el sistema presentaba limitaciones importantes ya que únicamente enviaba notificaciones básicas sin contexto geográfico. Por esta razón es que se hizo necesario pensar cómo integrar datos de geolocalización precisos, junto con la alerta de emergencia. Es decir que había que optimizar el sistema de comunicación de emergencia para hacer más efectivas y precisas las alertas.
+	Para superar estas limitaciones, se implementó un sistema de geolocalización que aprovechaba las capacidades GPS del dispositivo Android y se las integró para obtener coordenadas geográficas precisas.
+	La implementación de esta funcionalidad presentó desafíos técnicos. El principal problema radicó en que, a veces se producía un error en la obtención de las coordenadas GPS.
+Fue así que se iniciaron algunas acciones como el rediseño del sistema SMS con el fin de incluir información crítica integrada de manera clara. Se desarrolló una estructura de mensaje que incluía un encabezado de alerta para identificación inmediata del tipo de emergencia y un enlace directo a Google Maps con las coordenadas donde se había producido la caída.
+	Se estableció que, si no se obtenían coordenadas en quince segundos, el sistema procedería con la alerta sin información de ubicación pero manteniendo la funcionalidad de emergencia. 
+
+Paso 7: Validación del sistema. Identificación de problemas en el funcionamiento del dispositivo
+
+La fase de validación es esencial para detectar el correcto funcionamiento del sistema y corregir errores. Fue así que se compartió lo hecho hasta el momento con los compañeros de clase, quienes actuaron de “usuarios” del producto. En dichos ensayos de prueba se detectaron falsos positivos. Es decir que los esfuerzos por obtener un producto confiable en la detección de caídas hizo que se generara una hipersensibilidad y se emitieran falsos positivos frente a las actividades cotidianas normales del usuario.
+	Se pudo observar que los movimientos rutinarios, asociados al uso diario del dispositivo móvil, informaban patrones de aceleración que el algoritmo interpretaba erróneamente como eventos de caída. Estos movimientos incluían acciones tan comunes como atender llamadas telefónicas, depositar el teléfono sobre superficies como mesas o escritorios, extraer rápidamente el dispositivo del bolsillo para verificar la hora o leer mensajes, realizar gestos bruscos durante la manipulación normal del teléfono.
+	Esta situación comprometía significativamente el uso y la confiabilidad del sistema, ya que la generación frecuente de alertas innecesarias no solo molestaba al usuario principal, sino que también saturaba al contacto de emergencia con notificaciones falsas.
+
+	La comprensión de esta problemática llevó a la decisión de reevaluar completamente la estrategia de detección, reconociendo que un sistema exitoso debía ser lo suficientemente inteligente como para funcionar de manera transparente en el trasfondo de la vida diaria del usuario, activándose únicamente cuando existiera una verdadera situación de emergencia.
+	Este paso marcó un punto de inflexión en el desarrollo del proyecto, ya que se hizo evidente que cualquier sistema de detección de caídas viable debía equilibrar cuidadosamente la sensibilidad para detectar caídas reales con la especificidad para evitar falsos positivos. El desafío técnico se redefinió entonces como la necesidad de desarrollar algoritmos más sofisticados que pudieran distinguir entre los patrones de movimiento asociados con emergencias reales y aquellos generados por el uso normal del dispositivo.
+
+Paso 8: Metodología de análisis de datos para mitigar los falsos positivos
+
+	Para abordar de manera sistemática la problemática de los falsos positivos, se decidió implementar una metodología de análisis de datos que permitiera entender los patrones en los diferentes tipos de movimientos registrados por los sensores del dispositivo. Se reconoció que, para poder distinguir efectivamente entre caídas reales y falsos positivos, era necesario recolectar y analizar una cantidad significativa de datos que representaran fielmente ambos tipos de eventos.
+	Se desarrolló un sistema de logging especializado que almacenaba de manera estructurada los datos obtenidos tanto del acelerómetro como del giroscopio en formato CSV. Esta decisión de utilizar archivos CSV se basó en la necesidad de facilitar el análisis posterior mediante herramientas estadísticas y de visualización de datos. 
+
+	El sistema de logging se diseñó para capturar no solo los valores instantáneos de los sensores, sino también información contextual como el timestamp preciso de cada medición, la duración total del evento, y metadatos que permitieran clasificar posteriormente cada situación registrada. 
+
+	Se establecieron categorías específicas de eventos que debían ser documentados sistemáticamente, reconociendo que cada tipo de movimiento tenía características particulares que podrían ser identificables a través del análisis de los datos de los sensores.
+
+	La primera categoría se enfocó en los falsos positivos generados por manipulación directa del dispositivo. Dentro de la misma se documentaron específicamente los movimientos asociados con la toma del dispositivo desde diferentes posiciones, tomarlo desde una superficie plana, sacarlo del bolsillo o recogerlo desde posiciones inusuales como el suelo. Para cada uno de estos movimientos se realizaron múltiples repeticiones bajo diferentes condiciones, variando la velocidad del movimiento, la orientación inicial del dispositivo, y el contexto situacional.
+
+	La segunda categoría se centró en los falsos positivos por deposición del dispositivo. Se documentaron sistemáticamente los movimientos de colocar el teléfono sobre diferentes tipos de superficies.
+
+	Para contrastar estos datos, se realizaron caídas simuladas con el fin de analizar el comportamiento del dispositivo. se ensayaron caídas hacia adelante, replicando situaciones donde una persona tropieza y cae hacia el frente. Estas simulaciones se realizaron de manera segura utilizando superficies acolchadas. Las caídas hacia atrás se simularon para capturar los patrones asociados con pérdida de equilibrio hacia la parte posterior, situaciones comunes cuando las personas mayores se levantan rápidamente . Se incluyeron también pruebas de caídas laterales tanto hacia la derecha como hacia la izquierda, reconociendo que estos tipos de caídas son frecuentes en situaciones donde se pierde el equilibrio debido a superficies resbaladizas o al intentar evitar obstáculos. Cada dirección de caída lateral presentaba patrones ligeramente diferentes en los datos de los sensores, especialmente en términos de la rotación registrada por el giroscopio.
+
+	La información recolectada se estudió y en el proceso de análisis se incluyeron diagramas de caja y bigotes, cálculo de medias y medianas, y análisis de correlación entre variables. 
+
+	Los resultados iniciales mostraron alta correlación entre la mayoría de las variables analizadas, lo que dificultaba la diferenciación efectiva entre eventos legítimos y falsos positivos. Sin embargo, se identificó una variable diferenciadora significativa: el maxjerk (máxima variación de aceleración por unidad de tiempo). Esta métrica mostró diferencias estadísticamente relevantes entre caídas reales y falsos positivos, sugiriendo su potencial como parámetro de discriminación.
+
+Se dedicó aproximadamente una semana al desarrollo de un algoritmo basado en el análisis del maxjerk como parámetro diferenciador. La implementación de este enfoque restrictivo resultó en una reducción significativa de la sensibilidad del sistema, lo que comprometió la capacidad de detectar caídas reales. Esta situación creó un conflicto entre precisión (reducción de falsos positivos) y sensibilidad (detección de caídas verdaderas).
+
+	Tras un análisis exhaustivo de los resultados obtenidos, se determinó que el enfoque puramente matemático no proporcionaba una solución viable para el equilibrio requerido entre sensibilidad y especificidad del sistema.
+
+Por ello, se decidió descartar la teoría de que dicha variable podría mitigar los falsos positivos, y se buscó otra alternativa que solucionara los problemas mencionados anteriormente.
+
+	La solución desarrollada se basó en la integración del sensor de proximidad como mecanismo de activación condicional del sistema de detección de caídas.
+
+	Se implementó una lógica de funcionamiento donde el sistema únicamente procesaba y evaluaba los datos del acelerómetro cuando el sensor de proximidad indicaba que el dispositivo se encontraba en el bolsillo del usuario. Esta condición contextual representó una solución que redujo de manera significativa los falsos positivos sin requerir algoritmos complejos ni procesamiento intensivo adicional.
+
+	La implementación técnica de esta solución requirió la integración de un nuevo componente sensor en el sistema existente. Se configuró el sensor de proximidad para funcionar de manera continua.
+
+	Una ventaja significativa de esta aproximación era su simplicidad conceptual y técnica. A diferencia del enfoque matemático complejo que había fallado anteriormente, la solución basada en sensor de proximidad era intuitiva, fácil de implementar, y no requería calibración compleja ni parámetros personalizados para cada usuario. El sensor de proximidad proporciona información binaria clara sobre el estado contextual del dispositivo, eliminando la ambigüedad inherente en los enfoques basados en análisis de patrones de movimiento.
+La implementación del sensor de proximidad como mecanismo de activación demostró ser altamente efectiva en la resolución de la problemática de falsos positivos. Durante las pruebas de validación realizadas durante los siguientes días, se observó una reducción drástica en las alertas erróneas, manteniendo al mismo tiempo la capacidad de detección de caídas reales.
+Esta solución no solo resolvió el problema técnico principal, sino que también mejoró significativamente la experiencia del usuario al eliminar las interrupciones innecesarias causadas por falsas alarmas. La retroalimentación recibida durante esta fase de pruebas confirmó que el sistema había alcanzado un equilibrio óptimo entre sensibilidad y especificidad, cumpliendo con los objetivos establecidos para el MVP.
+Paso 9: Segundo Sprint - Desarrollo del Sistema de Zona Segura
+
+	Una vez validado exitosamente el sistema de detección de caídas, y siguiendo la metodología Scrum adoptada para el proyecto, se procedió a la planificación del segundo sprint. 
+	Durante la reunión de Sprint Planning se definió como objetivo el desarrollo de un sistema de zona segura que complementara las funcionalidades de detección de caídas ya desarrolladas.
+	El sistema de zona segura se pensó para responder a una necesidad identificada durante las encuestas iniciales, realizadas a familiares de adultos mayores, que habían manifestado la importancia de poder monitorear a la persona si se alejaba del espacio determinado como “seguro”. De allí que se pensó en agregar una capa adicional de seguridad a través de la delimitación de un área geográfica como conocida y la emisión de una notificación, si el usuario se alejaba de la misma. Para ello se les solicitó que definieran un área geográfica específica mediante la selección de un punto central en el mapa y la configuración de un radio de seguridad. El sistema debía monitorear continuamente la ubicación del adulto y generar alertas automáticas cuando se detectara que había abandonado la zona establecida.
+Por otra parte, para hacer el sistema más inteligente y evitar notificaciones innecesarias, se decidió incorporar funcionalidades de programación horaria que permitieran establecer rutinas específicas. De esta manera, el sistema podría distinguir entre salidas usuales dentro de un entorno previsto (como ir de compras en horarios habituales) de situaciones potencialmente problemáticas (como abandonar la zona segura en horarios inusuales o durante la noche).
+
+Sub-paso 9.1.: Desarrollo del Selector de Ubicación
+
+	La primera fase del desarrollo se centró en crear una interfaz que permitiera definir geográficamente las zonas seguras de manera intuitiva.
+	Para la selección de la tecnología de mapas, se evaluaron diferentes opciones y finalmente se optó por OpenStreetMap en lugar de Google Maps, para evitar dependencias de servicios propietarios que pudieran generar costos adicionales o restricciones de uso y por las consideraciones de licenciamiento.
+	Se comenzó con la implementación de la funcionalidad básica del mapa: zoom, desplazamiento y centrado automático de la ubicación del usuario. Se prestó especial atención al manejo de permisos de ubicación, implementando un sistema que solicitaba los permisos necesarios de manera progresiva y proporcionaba retroalimentación clara al usuario cuando estos no estaban disponibles.
+	Uno de los desafíos técnicos más importantes fue cómo representar visualmente las zonas seguras en el mapa. Para ello se pensó en un sistema dual que combinara marcadores, para indicar el punto central de cada zona, con círculos semitransparentes para mostrar el área de cobertura. Esta disposición visual permitiría identificar de manera rápida la ubicación exacta como el alcance de la zona configurada. A su vez, se utilizaron colores significativos para facilitar la lectura del selector. Así las zonas activas se mostraban en verde, mientras que las zonas deshabilitadas aparecían en gris. Esta diferenciación visual resultó crucial para que los usuarios pudieran evaluar rápidamente el estado de su configuración.
+
+Sub-paso 9.2.: Desarrollo del Sistema de Geocodificación
+
+	Una vez desarrollado el selector de ubicación, se pasó al sistema de geocodificación que permitiera introducir direcciones en lugar de tener que proporcionar coordenadas exactas (ej: "San Martín 123, Mendoza Mendoza” o "Boulogne Sur Mer 683 Mendoza Mendoza" en vez de -32.90251641882417, -68.84219577116397 y -32.89118157494615, -68.86178794509051 respectivamente)
+ 	Esto resultó especialmente útil cuando los usuarios utilizaban la función "usar ubicación actual", ya que el sistema podría mostrar una descripción textual comprensible de la ubicación seleccionada en lugar de solo números de coordenadas.
+	El proceso de geocodificación presentó varios retos técnicos. Uno de ellos fue que la disponibilidad del servicio no estaba garantizada en áreas con conectividad limitada. Para solucionar este problema, se desarrolló un sistema de respaldo que permitiera la introducción directa de coordenadas cuando la geocodificación automática fallara.
+
+Sub- paso 9.3.: Configuración de Horarios y Rutinas
+
+	En las fases de prueba se identificó que el sistema, al detectar salidas de zonas seguras, emitía alertas de emergencia que no necesariamente eran situaciones peligrosas. De allí que se hizo necesario introducir ciertas flexibilidades para poder distinguir entre actividades planificadas fuera del radio predeterminado de situaciones potencialmente problemáticas.
+	Para solucionar esto se desarrolló un sistema de horarios de excepción que permitía configurar períodos específicos durante los cuales el sistema no generaría alertas. La implementación de esta funcionalidad requirió un cuidadoso diseño de la interfaz de usuario para que fuera accesible para personas que podrían no estar familiarizadas con tecnología compleja.
+	El sistema de configuración de horarios se diseñó con una aproximación de días de la semana y rangos horarios, permitiendo configuraciones como "salidas de compras los martes y jueves desde las 9:00 hasta las 13:00hs". Se prestó especial atención a la validación de datos para prevenir configuraciones ilógicas como horarios de finalización anteriores a los de inicio.
+	Otro aspecto que se agregó, fue la visualización en tiempo real del estado de los horarios. Así, se incorporaron indicadores visuales para indicar cuándo un horario de excepción estaba activo y ofrecer retroalimentación inmediata sobre el comportamiento del sistema.
+
+Sub- paso 9.4.: Implementación del Sistema de Persistencia
+
+	Se evaluaron diferentes opciones de persistencia y se optó por utilizar el sistema de preferencias nativo de Android combinado con serialización JSON para estructuras de datos complejas porque permitía almacenar información compleja como listas de zonas seguras con múltiples propiedades (nombre, coordenadas, radio, estado de activación) y horarios de excepción con configuraciones detalladas de días y horas. 
+	Se desarrolló un enfoque híbrido que combinara actualizaciones automáticas de ubicación con verificaciones periódicas programadas. Las actualizaciones automáticas se configuraron con intervalos optimizados: cada 10 minutos para las actualizaciones de ubicación y una distancia mínima de 100 metros para activar una nueva verificación. Estas configuraciones se basaron en un balance entre precisión de monitorización y conservación de batería.
+	Como respaldo, se implementaron verificaciones periódicas cada 15 minutos que utilizaban la última ubicación conocida del dispositivo. Este sistema de respaldo resultó crucial para situaciones donde el GPS estaba temporalmente no disponible o cuando el dispositivo estaba en modo de ahorro de energía.
+
+Sub- paso 9.5.: Creación del Sistema de Mensajería de Notificación
+
+	La fase final del desarrollo se enfocó en crear mensajes de notificación que fueran informativos, concisos y accionables.
+	El mensaje final desarrollado incluyó un encabezado claro de identificación del tipo de alerta, un enlace directo a la ubicación en Google Maps, información del nivel de batería del dispositivo, y un timestamp preciso del evento. Esta estructura proporcionaba a los contactos de emergencia toda la información necesaria para evaluar la situación y tomar acciones apropiadas.
+	Un aspecto importante del sistema de notificaciones fue la implementación de un mecanismo de "enfriamiento" entre mensajes. Se reconoció que enviar múltiples alertas en períodos cortos podía generar fatiga y reducir la efectividad del sistema. Por ello se estableció un período de una hora entre notificaciones consecutivas para evitar spam de mensajes en situaciones donde el usuario estuviera moviéndose en el borde de una  zona segura.
+Esta implementación completó el sistema de zona segura, creando una solución integral que balanceaba efectivamente las necesidades de seguridad con la usabilidad práctica, evitando la generación de falsas alarmas mientras mantenía la capacidad de detectar y reportar situaciones verdaderamente problemáticas.
+
+
+	Todos los pasos dados en este paso 9, concluyeron con el desarrollo del sistema de zona segura. Evolución significativa en las capacidades de monitorización de la aplicación porque transformó un sistema reactivo de detección de emergencias en una solución proactiva de prevención y seguimiento continuo.
+	La implementación exitosa de este módulo demostró la viabilidad de crear herramientas de seguridad accesibles y no intrusivas para el cuidado de adultos mayores, equilibrando efectivamente la autonomía personal con la tranquilidad familiar.
+
+Paso 10: Optimización para Funcionamiento en Segundo Plano
+
+	Una vez completado el desarrollo de las funcionalidades principales del sistema de detección de caídas y zona segura, se identificó una limitación crítica que comprometía la viabilidad práctica de la aplicación: el sistema únicamente funcionaba cuando se encontraba en primer plano y con la pantalla del dispositivo activa. Esta restricción representaba un obstáculo fundamental para el uso real del dispositivo, ya que los adultos mayores no podrían mantener la aplicación constantemente abierta durante sus actividades diarias.
+	El problema se manifestó de manera evidente durante las pruebas de validación, donde se observó que al bloquear la pantalla del dispositivo o al cambiar a otras aplicaciones, tanto el sistema de detección de caídas como el monitoreo de zona segura dejaban de funcionar. Esta situación hacía que la aplicación fuera prácticamente inútil para su propósito principal, ya que las caídas y los eventos de emergencia podrían ocurrir en cualquier momento, independientemente del estado de la pantalla o de la aplicación activa.
+	Para solucionar esta limitación se pensó en una arquitectura de servicios que permitiera el funcionamiento continuo de las funcionalidades críticas independientemente del estado de la interfaz de usuario. De allí que se decidió implementar un servicio (Foreground Service) que garantizara la continuidad operacional sin ser terminado por el sistema operativo Android debido a optimizaciones de batería.
+	La implementación técnica requirió la configuración adecuada de permisos en el archivo de manifiesto de la aplicación, incluyendo los permisos específicos para servicios de primer plano y acceso continuo a la ubicación.
+La implementación exitosa del funcionamiento en segundo plano representó la culminación técnica del proyecto, transformando Guardian Fall de un prototipo funcional en una aplicación práctica y utilizable en condiciones reales, demostrando que era posible crear un sistema de monitoreo efectivo que operara de manera transparente e independiente de la interacción directa del usuario con el dispositivo.
+
+
+
