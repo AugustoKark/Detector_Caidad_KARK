@@ -91,7 +91,7 @@ Guardian es una aplicación de detección de caídas que combina  sensores avanz
 
  COnfiguración    | About view (con instrucciones y botón de emergencia) | Sensores & Señales de detección (pausable) |                        Settings                          | Número de contacto de emergencia
 :-----------------------------:|:----------------------------------------------------:|:------------------------------------------:|:--------------------------------------------------------:|:--------------------------------------------------:
- ![EULA](doc/screenshot.1.jpeg) |           ![About](doc/screenshot.1.jpeg)            |     ![Signals](doc/screenshot.2.jpeg)      |            ![Settings](doc/screenshot.3.jpeg)            | ![Contact](doc/screenshot.4.jpeg)
+ ![EULA](doc/screenshot.0.jpeg) |           ![About](doc/screenshot.1.jpeg)            |     ![Signals](doc/screenshot.2.jpeg)      |            ![Settings](doc/screenshot.3.jpeg)            | ![Contact](doc/screenshot.4.jpeg)
 
 
 

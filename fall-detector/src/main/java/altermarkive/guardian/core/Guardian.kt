@@ -88,7 +88,7 @@ class Guardian : Service() {
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
-    override fun onStartCommand(intent: Intent, flags: Int, startID: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startID: Int): Int {
         val now = System.currentTimeMillis()
         val app = resources.getString(R.string.app)
         val channelId =
