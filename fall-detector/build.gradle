@@ -9,21 +9,32 @@ static def countCommits() {
 }
 
 android {
-    namespace 'altermarkive.guardian'
+    namespace 'com.kark.falldetector'
     compileSdkVersion 35
 
     defaultConfig {
-        applicationId "altermarkive.guardian"
+        applicationId "com.kark.falldetector"
         minSdkVersion 21
         targetSdkVersion 35
         versionCode countCommits()
         versionName "0.0.0"
     }
 
+    signingConfigs {
+        release {
+            // Para generar keystore: keytool -genkey -v -keystore release-key.keystore -alias release -keyalg RSA -keysize 2048 -validity 10000
+            storeFile file('release-key.keystore')
+            storePassword 'password123'
+            keyAlias 'release'
+            keyPassword 'password123'
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {

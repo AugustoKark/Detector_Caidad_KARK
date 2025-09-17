@@ -1,0 +1,144 @@
+.
+├── AndroidManifest.xml
+├── assets
+│   ├── about.html
+│   └── eula.html
+├── data.txt
+├── ic_launcher-playstore.png
+├── java
+│   └── altermarkive
+│       └── guardian
+│           ├── Surface.kt
+│           ├── alerts
+│           │   ├── Alarm.kt
+│           │   ├── Contact.kt
+│           │   ├── FallAlertActivity.kt
+│           │   ├── FallCountdownService.kt
+│           │   ├── Messenger.kt
+│           │   └── Telephony.kt
+│           ├── arbol.txt
+│           ├── core
+│           │   ├── About.kt
+│           │   ├── Boot.kt
+│           │   ├── Connectivity.kt
+│           │   ├── Guardian.kt
+│           │   └── Main.kt
+│           ├── detection
+│           │   ├── Buffers.kt
+│           │   ├── Detector.kt
+│           │   └── Sampler.kt
+│           ├── safezone
+│           │   ├── ExceptionScheduleAdapter.kt
+│           │   ├── SafeZoneAdapter.kt
+│           │   ├── SafeZoneFragment.kt
+│           │   ├── SafeZoneMapFragment.kt
+│           │   ├── SafeZoneMonitoringService.kt
+│           │   └── SafezoneModel.kt
+│           ├── sensors
+│           │   ├── Battery.kt
+│           │   ├── Positioning.kt
+│           │   └── Report.kt
+│           ├── storage
+│           │   ├── Data.kt
+│           │   ├── ServerAdapter.kt
+│           │   ├── Storage.kt
+│           │   └── Upload.kt
+│           ├── ui
+│           │   ├── Settings.kt
+│           │   ├── Signals.kt
+│           │   └── Zoomable.kt
+│           └── utils
+│               ├── Batch.kt
+│               ├── BatteryOptimizationHelper.kt
+│               ├── FallDetectionSettings.kt
+│               ├── Log.kt
+│               └── VibrationUtils.kt
+└── res
+    ├── color
+    │   ├── switch_thumb_color.xml
+    │   └── switch_track_color.xml
+    ├── drawable
+    │   ├── card_background.xml
+    │   ├── emergency_background.xml
+    │   ├── emergency_button_shadow.xml
+    │   ├── header_gradient.xml
+    │   ├── ic_arrow_forward.xml
+    │   ├── ic_check_circle.xml
+    │   ├── ic_data_collection.xml
+    │   ├── ic_document_legal.xml
+    │   ├── ic_emergency.xml
+    │   ├── ic_emergency_fab.xml
+    │   ├── ic_fall_detection.xml
+    │   ├── ic_fall_detection2.xml
+    │   ├── ic_feedback.xml
+    │   ├── ic_info.xml
+    │   ├── ic_launcher_background.xml
+    │   ├── ic_launcher_foreground.xml
+    │   ├── ic_location.xml
+    │   ├── ic_phone_24.xml
+    │   ├── ic_policy.xml
+    │   ├── ic_privacy.xml
+    │   ├── ic_search_24.xml
+    │   ├── ic_shield.xml
+    │   ├── ic_test_alert.xml
+    │   ├── ic_timer.xml
+    │   ├── ic_version.xml
+    │   ├── ic_warning.xml
+    │   └── preference_spacer.xml
+    ├── drawable-v21
+    │   └── emergency_background.xml
+    ├── layout
+    │   ├── about.xml
+    │   ├── activity_fall_alert.xml
+    │   ├── contact.xml
+    │   ├── dialog_add_safe_zone.xml
+    │   ├── dialog_add_schedule.xml
+    │   ├── eula.xml
+    │   ├── fragment_exception_schedules.xml
+    │   ├── fragment_safezone.xml
+    │   ├── fragment_safezone_map.xml
+    │   ├── item_exception_schedule.xml
+    │   ├── item_safe_zone.xml
+    │   ├── main.xml
+    │   └── signals.xml
+    ├── menu
+    │   └── menu.xml
+    ├── mipmap-anydpi-v26
+    │   ├── ic_launcher.xml
+    │   └── ic_launcher_round.xml
+    ├── mipmap-hdpi
+    │   ├── ic_launcher.webp
+    │   ├── ic_launcher_foreground.webp
+    │   └── ic_launcher_round.webp
+    ├── mipmap-mdpi
+    │   ├── ic_launcher.webp
+    │   ├── ic_launcher_foreground.webp
+    │   └── ic_launcher_round.webp
+    ├── mipmap-xhdpi
+    │   ├── ic_launcher.webp
+    │   ├── ic_launcher_foreground.webp
+    │   └── ic_launcher_round.webp
+    ├── mipmap-xxhdpi
+    │   ├── ic_launcher.webp
+    │   ├── ic_launcher_foreground.webp
+    │   └── ic_launcher_round.webp
+    ├── mipmap-xxxhdpi
+    │   ├── ic_launcher.webp
+    │   ├── ic_launcher_foreground.webp
+    │   └── ic_launcher_round.webp
+    ├── navigation
+    │   └── navigation.xml
+    ├── raw
+    │   ├── alarm.wav
+    │   └── guardian.svg
+    ├── values
+    │   ├── arrays.xml
+    │   ├── colors.xml
+    │   ├── ic_launcher_background.xml
+    │   ├── strings.xml
+    │   ├── styles.xml
+    │   └── themes.xml
+    └── xml
+        └── preferences.xml
+
+29 directories, 113 files

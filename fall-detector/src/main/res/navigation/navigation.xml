@@ -7,13 +7,13 @@
 
     <fragment
         android:id="@+id/about"
-        android:name="altermarkive.guardian.core.About"
+        android:name="com.kark.falldetector.core.About"
         android:label="@string/about"
         tools:layout="@layout/about" />
 
     <fragment
         android:id="@+id/signals"
-        android:name="altermarkive.guardian.ui.Signals"
+        android:name="com.kark.falldetector.ui.Signals"
         android:label="@string/signals"
         tools:layout="@layout/signals" />
 
@@ -21,7 +21,7 @@
 
     <fragment
         android:id="@+id/safezone"
-        android:name="altermarkive.guardian.safezone.SafeZoneFragment"
+        android:name="com.kark.falldetector.safezone.SafeZoneFragment"
         android:label="@string/safezone"
         tools:layout="@layout/fragment_safezone" >
         <action
@@ -31,7 +31,7 @@
 
     <fragment
         android:id="@+id/settings"
-        android:name="altermarkive.guardian.ui.Settings"
+        android:name="com.kark.falldetector.ui.Settings"
         android:label="@string/settings" />
 
 </navigation>

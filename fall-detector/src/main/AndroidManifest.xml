@@ -68,7 +68,7 @@
         android:theme="@style/Theme.FallDetector">
 
         <activity
-            android:name="altermarkive.guardian.core.Main"
+            android:name="com.kark.falldetector.core.Main"
             android:label="@string/app"
             android:screenOrientation="portrait"
             android:exported="true"
@@ -93,13 +93,13 @@
             android:turnScreenOn="true" />
 
         <activity
-            android:name="altermarkive.guardian.alerts.Contact"
+            android:name="com.kark.falldetector.alerts.Contact"
             android:label="@string/contact"
             android:screenOrientation="portrait"
             android:exported="false"
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
-                <action android:name="altermarkive.guardian.Contact" />
+                <action android:name="com.kark.falldetector.Contact" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -110,7 +110,7 @@
             android:exported="false" />
 
         <receiver
-            android:name="altermarkive.guardian.core.Boot"
+            android:name="com.kark.falldetector.core.Boot"
             android:enabled="true"
             android:exported="true"
             android:label="Boot Receiver"
@@ -122,7 +122,7 @@
         </receiver>
 
         <receiver
-            android:name="altermarkive.guardian.alerts.Messenger"
+            android:name="com.kark.falldetector.alerts.Messenger"
             android:enabled="true"
             android:exported="true"
             android:label="SMS Responder"
@@ -134,7 +134,7 @@
         </receiver>
 
         <receiver
-            android:name="altermarkive.guardian.alerts.Telephony"
+            android:name="com.kark.falldetector.alerts.Telephony"
             android:enabled="true"
             android:exported="true"
             android:label="Call Responder"
@@ -145,7 +145,7 @@
         </receiver>
 
         <receiver
-            android:name="altermarkive.guardian.core.Connectivity"
+            android:name="com.kark.falldetector.core.Connectivity"
             android:enabled="true"
             android:exported="true"
             android:label="Connectivity Receiver"
@@ -156,17 +156,17 @@
         </receiver>
 
         <service
-            android:name="altermarkive.guardian.core.Guardian"
+            android:name="com.kark.falldetector.core.Guardian"
             android:exported="false"
             android:label="Monitoring Service"
             android:foregroundServiceType="dataSync">
             <intent-filter>
-                <action android:name="altermarkive.guardian.Guardian" />
+                <action android:name="com.kark.falldetector.Guardian" />
             </intent-filter>
         </service>
 
         <service
-            android:name="altermarkive.guardian.alerts.FallCountdownService"
+            android:name="com.kark.falldetector.alerts.FallCountdownService"
             android:exported="false"
             android:label="Fall Countdown Service"
             android:foregroundServiceType="dataSync">

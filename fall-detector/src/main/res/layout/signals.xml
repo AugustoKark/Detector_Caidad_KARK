@@ -6,7 +6,7 @@
     android:layout_height="fill_parent"
     android:orientation="vertical"
     android:paddingBottom="?attr/actionBarSize"
-    tools:context="altermarkive.guardian.ui.Signals">
+    tools:context="com.kark.falldetector.ui.Signals">
 
     <!-- Header con título -->
     <androidx.cardview.widget.CardView
@@ -85,7 +85,7 @@
             android:layout_height="match_parent"
             android:background="@android:color/white">
 
-            <altermarkive.guardian.Surface
+            <com.kark.falldetector.Surface
                 android:id="@+id/surface"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />

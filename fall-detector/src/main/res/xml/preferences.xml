@@ -14,7 +14,7 @@
             android:summary="Toca para seleccionar o cambiar el número que recibirá las alertas"
             android:icon="@drawable/ic_phone_24"
             app:iconSpaceReserved="true">
-            <intent android:action="altermarkive.guardian.Contact" />
+            <intent android:action="com.kark.falldetector.Contact" />
         </Preference>
 
         <Preference
