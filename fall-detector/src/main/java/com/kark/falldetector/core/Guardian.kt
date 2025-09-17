@@ -8,7 +8,6 @@ import com.kark.falldetector.R
 import com.kark.falldetector.detection.Sampler
 import com.kark.falldetector.safezone.SafeZoneManager
 import com.kark.falldetector.safezone.SafeZoneMonitoringService
-import com.kark.falldetector.storage.ServerAdapter
 import com.kark.falldetector.utils.BatteryOptimizationHelper
 import android.annotation.SuppressLint
 import android.app.*
@@ -41,7 +40,7 @@ class Guardian : Service() {
         if (SafeZoneManager.isMonitoringEnabled(this)) {
             SafeZoneMonitoringService.startService(this)
         }
-        ServerAdapter.initializeScheduledUploads(this)
+        // ServerAdapter ya no realiza subidas programadas
     }
     
     private fun acquireWakeLock() {

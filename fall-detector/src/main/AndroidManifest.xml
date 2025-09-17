@@ -23,14 +23,8 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!-- Using phone call monitoring -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <!-- Using caller notification and identification -->
-    <uses-permission android:name="android.permission.READ_CALL_LOG" />
-    <!-- Using phone call answer -->
-    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
     <!-- Using bootstrap notification -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- Using SMS receiving -->
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <!-- Using SMS sending -->
     <uses-permission android:name="android.permission.SEND_SMS" />
     <!-- Using foreground service -->
@@ -43,14 +37,10 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- Using keyguard disable -->
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
-    <!-- Using external storage -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <!-- Using system alert window for emergency alerts -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <!-- Using full screen intent for emergency notifications -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-    <!-- Using biometric for unlock -->
-    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <!-- Using request ignore battery optimizations for background operation -->
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- Using foreground service types -->

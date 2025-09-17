@@ -184,19 +184,7 @@ class About : Fragment(), View.OnClickListener {
                 Build.VERSION_CODES.JELLY_BEAN
             ),
             VersionedPermission(
-                Manifest.permission.READ_CALL_LOG,
-                Build.VERSION_CODES.JELLY_BEAN
-            ),
-            VersionedPermission(
-                "android.permission.ANSWER_PHONE_CALLS",
-                Build.VERSION_CODES.O
-            ),
-            VersionedPermission(
                 Manifest.permission.RECEIVE_BOOT_COMPLETED,
-                Build.VERSION_CODES.JELLY_BEAN
-            ),
-            VersionedPermission(
-                Manifest.permission.RECEIVE_SMS,
                 Build.VERSION_CODES.JELLY_BEAN
             ),
             VersionedPermission(
