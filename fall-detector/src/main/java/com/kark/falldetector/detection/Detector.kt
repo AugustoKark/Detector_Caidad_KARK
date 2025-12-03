@@ -100,16 +100,161 @@ class Detector private constructor() : SensorEventListener {
         internal const val BUFFER_COUNT: Int = 19
     }
 
-    // ========== SENSOR DE PROXIMIDAD SIMPLE ==========
+    // ========== DETECCIÓN DE BOLSILLO (HÍBRIDA) ==========
+    // Sensor de proximidad
     private var proximitySensor: Sensor? = null
     private var isNearProximity: Boolean = false
     private var proximityValue: Float = 10f  // Valor por defecto (lejos)
 
-    // Método simple para verificar si hay algo cerca (bolsillo)
-    private fun isInPocket(): Boolean {
-        return isNearProximity
+    // Sensor de luz (alternativa para sensores virtuales)
+    private var lightSensor: Sensor? = null
+    private var lightValue: Float = 1000f  // Valor por defecto (luz ambiente)
+    private var isLowLight: Boolean = false
+
+    // Detección de tipo de sensor
+    private var isVirtualProximitySensor: Boolean = false
+    private var proximityValuesReceived: MutableList<Float> = mutableListOf()
+    private var sensorTypeDetected: Boolean = false
+
+    // Umbrales
+    private val LIGHT_POCKET_THRESHOLD = 10f  // Menos de 10 lux = probablemente en bolsillo
+    private val PROXIMITY_SAMPLES_FOR_DETECTION = 10  // Muestras para detectar tipo de sensor
+
+    /**
+     * Detecta si el sensor de proximidad es virtual basándose en:
+     * 1. Nombre del sensor (contiene "virtual", "vprox", etc.)
+     * 2. Comportamiento binario (solo valores 0 y maxRange)
+     */
+    private fun detectVirtualSensor() {
+        val sensor = proximitySensor ?: return
+        val sensorName = sensor.name.lowercase()
+        val sensorVendor = sensor.vendor.lowercase()
+
+        // Indicadores por nombre
+        val nameIndicatesVirtual = sensorName.contains("virtual") ||
+                                   sensorName.contains("vprox") ||
+                                   sensorName.contains("software") ||
+                                   sensorName.contains("synthetic")
+
+        // Indicadores por comportamiento (si solo recibe 0 o maxRange)
+        val maxRange = sensor.maximumRange
+        val hasOnlyBinaryValues = if (proximityValuesReceived.size >= PROXIMITY_SAMPLES_FOR_DETECTION) {
+            val uniqueValues = proximityValuesReceived.distinct()
+            // Virtual si solo hay 2 valores únicos: 0 y maxRange (o muy cerca)
+            uniqueValues.size <= 2 && uniqueValues.all { it <= 0.1f || it >= maxRange - 0.1f }
+        } else {
+            false
+        }
+
+        // Samsung S23/S24/S25 tienen maxRange de exactamente 5.0 y son virtuales
+        val isSamsungVirtual = sensorVendor.contains("samsung") &&
+                               maxRange == 5.0f &&
+                               android.os.Build.VERSION.SDK_INT >= 33  // Android 13+
+
+        isVirtualProximitySensor = nameIndicatesVirtual || hasOnlyBinaryValues || isSamsungVirtual
+        sensorTypeDetected = true
+
+        log(android.util.Log.INFO, "Proximity sensor type detected: ${if (isVirtualProximitySensor) "VIRTUAL" else "PHYSICAL"}")
+        log(android.util.Log.INFO, "  - Name: ${sensor.name}, Vendor: ${sensor.vendor}")
+        log(android.util.Log.INFO, "  - MaxRange: $maxRange, Binary behavior: $hasOnlyBinaryValues")
     }
-    // =================================================
+
+    /**
+     * Método híbrido para verificar si el dispositivo está en el bolsillo.
+     * Usa estrategias diferentes según el tipo de sensor:
+     * - Sensor físico: Usa proximidad tradicional
+     * - Sensor virtual: Combina luz + orientación vertical
+     */
+    private fun isInPocket(): Boolean {
+        return if (isVirtualProximitySensor) {
+            // Para sensores virtuales: usar luz + orientación
+            isInPocketVirtual()
+        } else {
+            // Para sensores físicos: usar proximidad tradicional
+            isNearProximity
+        }
+    }
+
+    /**
+     * Detección de bolsillo para dispositivos con sensor virtual.
+     * Combina múltiples señales: luz, orientación, y movimiento característico
+     */
+    private fun isInPocketVirtual(): Boolean {
+        // Criterio 1: Poca luz (menos de 10 lux típico en bolsillo)
+        val isDark = isLowLight
+
+        // Criterio 2: Luz muy baja (menos de 5 lux = casi seguro en bolsillo/bolso)
+        val isVeryDark = lightValue < 5f
+
+        // Criterio 3: Orientación vertical (típica del bolsillo)
+        val isVertical = isInVerticalPosition()
+
+        // Criterio 4: Orientación casi vertical (más permisivo)
+        val isNearlyVertical = isNearlyVerticalPosition()
+
+        // Criterio 5: Proximidad (aunque sea virtual, puede ayudar)
+        val isNear = isNearProximity
+
+        // Criterio 6: Sensor de luz cubierto (muy poca luz = algo está tapando el sensor)
+        val isSensorCovered = lightValue < 20f
+
+        // Lógica combinada mejorada para sensores virtuales:
+        // - Si está MUY oscuro (< 5 lux) = muy probablemente en bolsillo (suficiente por sí solo)
+        // - Si está oscuro Y vertical = muy probablemente en bolsillo
+        // - Si está oscuro Y casi vertical = probablemente en bolsillo
+        // - Si el sensor está cubierto (< 20 lux) Y está vertical = en bolsillo
+        // - Si está oscuro Y proximidad detecta cerca = probablemente en bolsillo
+        val inPocket = isVeryDark ||
+                       (isDark && isVertical) ||
+                       (isDark && isNearlyVertical) ||
+                       (isSensorCovered && isVertical) ||
+                       (isDark && isNear)
+
+        log(android.util.Log.DEBUG, "Virtual pocket detection - Light: ${lightValue} lux, VeryDark: $isVeryDark, Dark: $isDark, Vertical: $isVertical, NearlyVertical: $isNearlyVertical, Near: $isNear -> InPocket: $inPocket")
+
+        return inPocket
+    }
+
+    /**
+     * Verifica si el dispositivo está en posición casi vertical (más permisivo que isInVerticalPosition)
+     * Útil cuando el teléfono está ligeramente inclinado en el bolsillo
+     */
+    private fun isNearlyVerticalPosition(): Boolean {
+        var sumZ = 0.0
+        var sumX = 0.0
+        var sumY = 0.0
+        var count = 0
+
+        for (i in 0 until SPAN_AVERAGING) {
+            val zVal = at(zLPF, buffers.position - i, N)
+            val xVal = at(xLPF, buffers.position - i, N)
+            val yVal = at(yLPF, buffers.position - i, N)
+            if (!zVal.isNaN() && !xVal.isNaN() && !yVal.isNaN()) {
+                sumZ += zVal
+                sumX += xVal
+                sumY += yVal
+                count++
+            }
+        }
+
+        if (count == 0) return false
+
+        val avgZ = sumZ / count
+        val avgX = sumX / count
+        val avgY = sumY / count
+
+        val absZ = abs(avgZ)
+        val absX = abs(avgX)
+        val absY = abs(avgY)
+
+        // Posición "casi vertical" - más permisivo que isInVerticalPosition
+        // Y dominante pero permitimos más inclinación
+        // Esto cubre casos donde el teléfono está inclinado en el bolsillo
+        val isNearlyVertical = absY > 0.6 && absX < 0.6 && absZ < 0.6
+
+        return isNearlyVertical
+    }
+    // ======================================================
 
     // ========== CONFIGURACIÓN PARA RECOLECCIÓN DE DATOS ==========
     // CAMBIAR ESTA VARIABLE SEGÚN LA FASE:
@@ -712,6 +857,8 @@ class Detector private constructor() : SensorEventListener {
             log(android.util.Log.INFO, "Accuracy of the accelerometer is now equal to $accuracy")
         } else if (Sensor.TYPE_PROXIMITY == sensor.type) {
             log(android.util.Log.INFO, "Accuracy of the proximity sensor is now equal to $accuracy")
+        } else if (Sensor.TYPE_LIGHT == sensor.type) {
+            log(android.util.Log.INFO, "Accuracy of the light sensor is now equal to $accuracy")
         }
     }
 
@@ -733,13 +880,36 @@ class Detector private constructor() : SensorEventListener {
             Sensor.TYPE_PROXIMITY -> {
                 proximityValue = event.values[0]
 
+                // Recolectar valores para detectar si es sensor virtual
+                if (!sensorTypeDetected && proximityValuesReceived.size < PROXIMITY_SAMPLES_FOR_DETECTION * 2) {
+                    proximityValuesReceived.add(proximityValue)
+                    if (proximityValuesReceived.size >= PROXIMITY_SAMPLES_FOR_DETECTION) {
+                        detectVirtualSensor()
+                    }
+                }
+
                 // Determinar si está "cerca" basado en el valor del sensor
-                // Valores menores indican mayor proximidad
                 val maxRange = proximitySensor?.maximumRange ?: 5f
-                isNearProximity = proximityValue < (maxRange * 0.2f) // 20% del rango máximo
+                // Para sensores físicos: usar 20% del rango
+                // Para sensores virtuales: cualquier valor menor al máximo es "cerca"
+                isNearProximity = if (isVirtualProximitySensor) {
+                    proximityValue < maxRange
+                } else {
+                    proximityValue < (maxRange * 0.2f)
+                }
 
                 // Log para debugging
-                log(android.util.Log.DEBUG, "Proximity: ${proximityValue}cm, Near: $isNearProximity, MaxRange: $maxRange")
+                log(android.util.Log.DEBUG, "Proximity: ${proximityValue}cm, Near: $isNearProximity, MaxRange: $maxRange, Virtual: $isVirtualProximitySensor")
+            }
+
+            Sensor.TYPE_LIGHT -> {
+                lightValue = event.values[0]
+                isLowLight = lightValue < LIGHT_POCKET_THRESHOLD
+
+                // Log solo cuando cambia el estado (para no saturar logs)
+                if (isVirtualProximitySensor) {
+                    log(android.util.Log.DEBUG, "Light: ${lightValue} lux, LowLight: $isLowLight")
+                }
             }
         }
     }
@@ -765,14 +935,54 @@ class Detector private constructor() : SensorEventListener {
         proximitySensor = manager.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         if (proximitySensor != null) {
             val proximityName = proximitySensor!!.name
+            val proximityVendor = proximitySensor!!.vendor
             val proximityRange = proximitySensor!!.maximumRange
-            log(android.util.Log.INFO, "Proximity sensor: $proximityName, Max range: $proximityRange cm")
+            log(android.util.Log.INFO, "Proximity sensor: $proximityName ($proximityVendor), Max range: $proximityRange cm")
             manager.registerListener(this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL)
+
+            // Detectar tipo de sensor
+            val sensorNameLower = proximityName.lowercase()
+
+            // Sensores que NO funcionan bien para detección de bolsillo y necesitan método híbrido:
+            // 1. Sensores virtuales (virtual, vprox, software, synthetic)
+            // 2. Sensores Samsung "Ear Hover" / "ProToS" - diseñados para detectar oreja, no bolsillos
+            val needsHybridDetection = sensorNameLower.contains("virtual") ||
+                                       sensorNameLower.contains("vprox") ||
+                                       sensorNameLower.contains("software") ||
+                                       sensorNameLower.contains("synthetic") ||
+                                       sensorNameLower.contains("ear") ||
+                                       sensorNameLower.contains("hover") ||
+                                       sensorNameLower.contains("protos")
+
+            if (needsHybridDetection) {
+                isVirtualProximitySensor = true
+                sensorTypeDetected = true
+                log(android.util.Log.INFO, "Sensor not suitable for pocket detection - will use hybrid method (light + orientation)")
+            } else {
+                // Sensor físico tradicional (como sensortek) - funciona bien para bolsillos
+                isVirtualProximitySensor = false
+                sensorTypeDetected = true
+                log(android.util.Log.INFO, "Physical proximity sensor detected - will use direct proximity detection")
+            }
         } else {
-            log(android.util.Log.WARN, "Proximity sensor not available - fall detection will work normally")
+            log(android.util.Log.WARN, "Proximity sensor not available - will use light + orientation for pocket detection")
+            isVirtualProximitySensor = true  // Sin sensor de proximidad, usar método alternativo
+            sensorTypeDetected = true
         }
 
-        log(android.util.Log.INFO, "Fall alerts will only show when device is IN POCKET (proximity sensor detects object)")
+        // Inicializar sensor de luz (para detección híbrida en dispositivos con sensor virtual)
+        lightSensor = manager.getDefaultSensor(Sensor.TYPE_LIGHT)
+        if (lightSensor != null) {
+            val lightName = lightSensor!!.name
+            val lightRange = lightSensor!!.maximumRange
+            log(android.util.Log.INFO, "Light sensor: $lightName, Max range: $lightRange lux")
+            manager.registerListener(this, lightSensor, SensorManager.SENSOR_DELAY_NORMAL)
+        } else {
+            log(android.util.Log.WARN, "Light sensor not available - pocket detection may be less accurate on devices with virtual proximity sensor")
+        }
+
+        val detectionMethod = if (isVirtualProximitySensor) "HYBRID (light + orientation + proximity)" else "PHYSICAL proximity sensor"
+        log(android.util.Log.INFO, "Pocket detection method: $detectionMethod")
     }
 
     private fun captureOrientation(before: Boolean) {
@@ -1029,7 +1239,8 @@ class Detector private constructor() : SensorEventListener {
 
     // Método público para obtener el estado del sensor (útil para debugging)
     fun getProximityStatus(): String {
-        return "Proximity: ${proximityValue}cm, Near: $isNearProximity, InPocket: ${isInPocket()}"
+        val sensorType = if (isVirtualProximitySensor) "VIRTUAL" else "PHYSICAL"
+        return "Proximity: ${proximityValue}cm, Light: ${lightValue}lux, Near: $isNearProximity, Dark: $isLowLight, SensorType: $sensorType, InPocket: ${isInPocket()}"
     }
 
     // Método para limpiar recursos al destruir
@@ -1039,6 +1250,10 @@ class Detector private constructor() : SensorEventListener {
             val manager: SensorManager = context.getSystemService(SENSOR_SERVICE) as SensorManager
             manager.unregisterListener(this)
         }
+        // Limpiar estado de detección
+        proximityValuesReceived.clear()
+        sensorTypeDetected = false
+        isVirtualProximitySensor = false
         this.context = null
     }
 }

@@ -35,7 +35,7 @@ class Main : AppCompatActivity() {
         Guardian.initiate(this)
         
         // Load the EULA
-        val dialog = Dialog(context)
+        val dialog = Dialog(context, R.style.Theme_FallDetector)
         dialog.setContentView(R.layout.eula)
         dialog.setTitle("Términos y Condiciones")
         

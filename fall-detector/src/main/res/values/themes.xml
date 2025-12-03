@@ -1,28 +1,37 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.FallDetector" parent="Theme.MaterialComponents.Light.DarkActionBar">
-        <!-- Primary brand color. -->
-<!--        <item name="colorPrimary">@color/gray_600</item>-->
-<!--        <item name="colorPrimaryVariant">@color/gray_800</item>-->
-<!--        <item name="colorOnPrimary">@color/white</item>-->
-<!--        &lt;!&ndash; Secondary brand color. &ndash;&gt;-->
-<!--        <item name="colorSecondary">@color/gray_400</item>-->
-<!--        <item name="colorSecondaryVariant">@color/gray_800</item>-->
-<!--        <item name="colorOnSecondary">@color/black</item>-->
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
 
+        <!-- Deshabilitar edge-to-edge para mantener compatibilidad con versiones anteriores -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement" tools:targetApi="35">true</item>
 
+        <!-- Colores primarios -->
         <item name="colorPrimary">#2196F3</item>          <!-- Azul Material -->
         <item name="colorPrimaryVariant">#1976D2</item>   <!-- Azul más oscuro -->
         <item name="colorOnPrimary">@color/white</item>
-
-
 
         <!-- Verde para elementos de seguridad activa -->
         <item name="colorSecondary">#4CAF50</item>        <!-- Verde Material -->
         <item name="colorSecondaryVariant">#388E3C</item> <!-- Verde más oscuro -->
         <item name="colorOnSecondary">@color/white</item>
+
+        <!-- Asegurar que el fondo de la navigation bar sea sólido -->
+        <item name="android:navigationBarColor" tools:targetApi="l">?android:attr/windowBackground</item>
+
+        <!-- Tema para preferencias y diálogos - necesario para compatibilidad -->
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay.v14.Material</item>
+        <item name="alertDialogTheme">@style/Theme.FallDetector.Dialog</item>
+        <item name="android:alertDialogTheme">@style/Theme.FallDetector.Dialog</item>
+    </style>
+
+    <!-- Tema de diálogo personalizado para evitar problemas de recursos -->
+    <style name="Theme.FallDetector.Dialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="colorPrimary">#2196F3</item>
+        <item name="colorPrimaryVariant">#1976D2</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">#4CAF50</item>
     </style>
 </resources>

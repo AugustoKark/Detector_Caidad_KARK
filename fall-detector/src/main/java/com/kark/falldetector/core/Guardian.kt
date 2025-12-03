@@ -86,7 +86,6 @@ class Guardian : Service() {
         return channelId
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     override fun onStartCommand(intent: Intent?, flags: Int, startID: Int): Int {
         val now = System.currentTimeMillis()
         val app = resources.getString(R.string.app)
@@ -99,7 +98,12 @@ class Guardian : Service() {
                 ""
             }
         val main = Intent(this, Main::class.java)
-        val pending = PendingIntent.getActivity(this, 0, main, 0)
+        val pendingIntentFlags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        } else {
+            PendingIntent.FLAG_UPDATE_CURRENT
+        }
+        val pending = PendingIntent.getActivity(this, 0, main, pendingIntentFlags)
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(android.R.drawable.stat_sys_warning)
             .setContentTitle(app)

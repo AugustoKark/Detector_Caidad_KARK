@@ -133,14 +133,17 @@ class FallCountdownService : Service() {
     private fun startCountdown() {
         isCountdownActive = true
         secondsRemaining = countdownSeconds
-        
+
         Log.i(TAG, "Starting fall countdown: $countdownSeconds seconds")
-        
+
         // Iniciar vibración y sonido
         startEmergencyAlerts()
-        
+
         // Crear notificación persistente
         startForeground(NOTIFICATION_ID, createCountdownNotification(secondsRemaining))
+
+        // Lanzar la actividad de alerta para mostrar la UI
+        launchFallAlertActivity()
         
         // Iniciar el countdown timer
         countdownTimer = object : CountDownTimer((countdownSeconds * 1000).toLong(), 1000) {
@@ -391,6 +394,20 @@ class FallCountdownService : Service() {
             wakeLock = null
         } catch (e: Exception) {
             Log.e(TAG, "Error releasing wake lock: ${e.message}")
+        }
+    }
+
+    private fun launchFallAlertActivity() {
+        try {
+            val intent = Intent(this, FallAlertActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            startActivity(intent)
+            Log.i(TAG, "FallAlertActivity launched from service")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error launching FallAlertActivity: ${e.message}")
         }
     }
 }

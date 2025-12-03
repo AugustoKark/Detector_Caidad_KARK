@@ -148,7 +148,7 @@ class Settings : PreferenceFragmentCompat() {
 
 
     private fun showTermsAndConditions() {
-        val dialog = Dialog(requireContext())
+        val dialog = Dialog(requireContext(), R.style.Theme_FallDetector)
         dialog.setContentView(R.layout.eula)
         dialog.setTitle("Términos y Condiciones")
         

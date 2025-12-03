@@ -45,6 +45,7 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- Using foreground service types -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <!-- Post notifications for API 33+ -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -97,7 +98,8 @@
         <service
             android:name=".safezone.SafeZoneMonitoringService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="location" />
 
         <receiver
             android:name="com.kark.falldetector.core.Boot"
