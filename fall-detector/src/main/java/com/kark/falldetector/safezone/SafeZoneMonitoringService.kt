@@ -42,11 +42,11 @@ class SafeZoneMonitoringService : Service(), LocationListener {
         private const val TAG = "SafeZoneMonitoring"
         private const val CHANNEL_ID = "SafeZoneChannel"
         private const val NOTIFICATION_ID = 2  // Diferente del servicio Guardian principal
-        private const val LOCATION_UPDATE_INTERVAL = 10 * 60 * 1000L  // 10 minutos
+        private const val LOCATION_UPDATE_INTERVAL = 1 * 60 * 1000L  // 1 minuto
         private const val MIN_DISTANCE_CHANGE = 100.0f  // 100 metros
 
         // Intervalo para verificaciones periódicas (utilizado si no hay actualizaciones de ubicación)
-        private const val PERIODIC_CHECK_INTERVAL = 15 * 60 * 1000L  // 15 minutos
+        private const val PERIODIC_CHECK_INTERVAL = 1 * 60 * 1000L  // 1 minuto
 
         fun startService(context: Context) {
             val intent = Intent(context, SafeZoneMonitoringService::class.java)

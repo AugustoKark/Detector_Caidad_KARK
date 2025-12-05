@@ -18,6 +18,7 @@ import android.widget.EditText
 import android.widget.ListView
 import android.widget.SeekBar
 import android.widget.Switch
+import com.google.android.material.switchmaterial.SwitchMaterial
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -372,7 +373,7 @@ class SafeZoneFragment : Fragment() {
         val addressEditText = dialogView.findViewById<EditText>(R.id.addressEditText)
         val radiusSeekBar = dialogView.findViewById<SeekBar>(R.id.radiusSeekBar)
         val radiusValueText = dialogView.findViewById<TextView>(R.id.radiusValueText)
-        val enabledSwitch = dialogView.findViewById<Switch>(R.id.enabledSwitch)
+        val enabledSwitch = dialogView.findViewById<SwitchMaterial>(R.id.enabledSwitch)
 
         // Pre-rellenar campos
         nameEditText.setText(safeZone.name)
@@ -560,7 +561,7 @@ class SafeZoneFragment : Fragment() {
         val startMinuteEditText = dialogView.findViewById<EditText>(R.id.startMinuteEditText)
         val endHourEditText = dialogView.findViewById<EditText>(R.id.endHourEditText)
         val endMinuteEditText = dialogView.findViewById<EditText>(R.id.endMinuteEditText)
-        val enabledSwitch = dialogView.findViewById<Switch>(R.id.enabledSwitch)
+        val enabledSwitch = dialogView.findViewById<SwitchMaterial>(R.id.enabledSwitch)
 
         // Obtener checkboxes para los días de la semana
         val checkBoxes = ArrayList<androidx.appcompat.widget.AppCompatCheckBox>()
