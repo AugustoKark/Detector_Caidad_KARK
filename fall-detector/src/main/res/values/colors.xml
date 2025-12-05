@@ -7,11 +7,11 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red_emergency">#D32F2F</color>
     
-    <!-- Colores para switches -->
+    <!-- Colores para switches: verde activado, rojo desactivado -->
     <color name="switch_thumb_color_on">#4CAF50</color>
-    <color name="switch_thumb_color_off">#9E9E9E</color>
+    <color name="switch_thumb_color_off">#F44336</color>
     <color name="switch_track_color_on">#81C784</color>
-    <color name="switch_track_color_off">#E0E0E0</color>
+    <color name="switch_track_color_off">#EF9A9A</color>
 
 
 </resources>
