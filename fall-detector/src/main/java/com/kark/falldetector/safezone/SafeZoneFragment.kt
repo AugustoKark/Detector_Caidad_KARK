@@ -28,6 +28,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
+import android.text.Editable
+import android.text.TextWatcher
 import java.io.IOException
 import java.util.Locale
 
@@ -479,6 +481,11 @@ class SafeZoneFragment : Fragment() {
         checkBoxes.add(dialogView.findViewById(R.id.fridayCheckBox))   // Viernes - Calendar.FRIDAY (6)
         checkBoxes.add(dialogView.findViewById(R.id.saturdayCheckBox)) // Sábado - Calendar.SATURDAY (7)
 
+        // Configurar auto-avance de campos de hora/minuto
+        setupAutoAdvance(startHourEditText, startMinuteEditText)
+        setupAutoAdvance(startMinuteEditText, endHourEditText)
+        setupAutoAdvance(endHourEditText, endMinuteEditText)
+
         // Construir diálogo
         val dialog = AlertDialog.Builder(requireContext())
             .setTitle("Añadir horario de excepción")
@@ -581,6 +588,11 @@ class SafeZoneFragment : Fragment() {
         startMinuteEditText.setText(schedule.startMinute.toString())
         endHourEditText.setText(schedule.endHour.toString())
         endMinuteEditText.setText(schedule.endMinute.toString())
+
+        // Configurar auto-avance de campos de hora/minuto
+        setupAutoAdvance(startHourEditText, startMinuteEditText)
+        setupAutoAdvance(startMinuteEditText, endHourEditText)
+        setupAutoAdvance(endHourEditText, endMinuteEditText)
 
         // Marcar días seleccionados
         for (day in schedule.daysOfWeek) {
@@ -790,5 +802,20 @@ class SafeZoneFragment : Fragment() {
         } catch (e: Exception) {
             // Ignorar errores de limpieza
         }
+    }
+
+    /**
+     * Configura auto-avance: cuando el usuario escribe 2 dígitos, el foco pasa al siguiente campo
+     */
+    private fun setupAutoAdvance(currentField: EditText, nextField: EditText?) {
+        currentField.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                if (s?.length == 2 && nextField != null) {
+                    nextField.requestFocus()
+                }
+            }
+        })
     }
 }

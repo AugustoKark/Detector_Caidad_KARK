@@ -5,4 +5,22 @@
         <item name="android:thumbTint">@color/switch_thumb_color</item>
         <item name="android:trackTint">@color/switch_track_color</item>
     </style>
+
+    <!-- Estilo para TextInputLayout con bordes redondeados -->
+    <style name="RoundedTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeColor">@color/text_input_box_stroke</item>
+    </style>
+
+    <!-- Estilo para campos de hora/minuto pequeños -->
+    <style name="RoundedTimeInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">10dp</item>
+        <item name="boxCornerRadiusTopEnd">10dp</item>
+        <item name="boxCornerRadiusBottomStart">10dp</item>
+        <item name="boxCornerRadiusBottomEnd">10dp</item>
+        <item name="boxStrokeColor">@color/text_input_box_stroke</item>
+    </style>
 </resources>

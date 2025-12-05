@@ -49,7 +49,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:boxStrokeColor="#2196F3">
+                    style="@style/RoundedTextInputLayout">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/zoneNameEditText"
@@ -90,7 +90,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:boxStrokeColor="#2196F3"
+                    style="@style/RoundedTextInputLayout"
                     android:layout_marginBottom="12dp">
 
                     <com.google.android.material.textfield.TextInputEditText
