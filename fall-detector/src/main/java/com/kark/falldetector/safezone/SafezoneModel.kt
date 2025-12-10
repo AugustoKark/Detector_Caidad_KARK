@@ -94,7 +94,8 @@ object SafeZoneManager {
     private const val PREF_EXCEPTION_SCHEDULES = "exception_schedules"
     private const val PREF_SAFE_ZONE_MONITORING_ENABLED = "safe_zone_monitoring_enabled"
     private const val PREF_LAST_NOTIFICATION_TIME = "last_safe_zone_notification_time"
-    private const val NOTIFICATION_COOLDOWN_MS = 3600000 // 1 hora en milisegundos
+    private const val PREF_NOTIFICATION_INTERVAL = "safe_zone_notification_interval"
+    private const val DEFAULT_NOTIFICATION_COOLDOWN_MS = 3600000L // 1 hora en milisegundos (por defecto)
 
     /**
      * Guarda una zona segura en las preferencias
@@ -189,6 +190,43 @@ object SafeZoneManager {
     }
 
     /**
+     * Obtiene el intervalo de notificación configurado en minutos
+     */
+    fun getNotificationIntervalMinutes(context: Context): Int {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        // Manejar compatibilidad: puede estar guardado como String (ListPreference) o Long (código anterior)
+        return try {
+            val value = prefs.getString(PREF_NOTIFICATION_INTERVAL, null)
+            value?.toIntOrNull() ?: 60
+        } catch (e: ClassCastException) {
+            // Si fue guardado como Long anteriormente, convertir a minutos
+            try {
+                val longValue = prefs.getLong(PREF_NOTIFICATION_INTERVAL, 3600000L)
+                (longValue / 60000).toInt()
+            } catch (e2: Exception) {
+                60 // Valor por defecto: 60 minutos
+            }
+        }
+    }
+
+    /**
+     * Obtiene el intervalo de notificación configurado en milisegundos
+     */
+    fun getNotificationIntervalMs(context: Context): Long {
+        return getNotificationIntervalMinutes(context) * 60000L
+    }
+
+    /**
+     * Establece el intervalo de notificación en milisegundos
+     */
+    fun setNotificationIntervalMs(context: Context, intervalMs: Long) {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val minutes = (intervalMs / 60000).toInt()
+        // Guardar como String para compatibilidad con ListPreference
+        prefs.edit().putString(PREF_NOTIFICATION_INTERVAL, minutes.toString()).apply()
+    }
+
+    /**
      * Verifica si el usuario está en alguna zona segura activa
      */
     fun isInAnySafeZone(context: Context, location: Location): Boolean {
@@ -222,8 +260,9 @@ object SafeZoneManager {
         val prefs = PreferenceManager.getDefaultSharedPreferences(context)
         val lastNotificationTime = prefs.getLong(PREF_LAST_NOTIFICATION_TIME, 0)
         val currentTime = System.currentTimeMillis()
+        val notificationCooldownMs = getNotificationIntervalMs(context)
 
-        if (currentTime - lastNotificationTime < NOTIFICATION_COOLDOWN_MS) {
+        if (currentTime - lastNotificationTime < notificationCooldownMs) {
             // Aún estamos en período de enfriamiento
             return false
         }

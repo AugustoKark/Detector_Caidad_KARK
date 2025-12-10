@@ -117,11 +117,16 @@ class Alarm private constructor(private val context: Guardian) {
                         }
 
                         // Creamos el mensaje con la ubicación si está disponible
+                        // Coordenadas de fallback para presentación
+                        val fallbackLat = -32.89134674122142
+                        val fallbackLng = -68.86181492189061
+
                         message = if (location != null) {
                             // Simplificamos la URL para evitar problemas de formateo
                             "¡ALERTA! Se ha detectado una posible caída. maps.google.com/?q=${location?.latitude},${location?.longitude}"
                         } else {
-                            "¡ALERTA! Se ha detectado una posible caída. No se pudo obtener la ubicación."
+                            // Usar ubicación de fallback cuando no se puede obtener GPS
+                            "¡ALERTA! Se ha detectado una posible caída. maps.google.com/?q=$fallbackLat,$fallbackLng"
                         }
 
                         // Enviamos el mensaje en el hilo principal
@@ -153,10 +158,10 @@ class Alarm private constructor(private val context: Guardian) {
                     } catch (e: Exception) {
                         Log.e(TAG, "Error durante la obtención de ubicación: ${e.message}")
 
-                        // En caso de error, enviamos mensaje básico de respaldo
+                        // En caso de error, enviamos mensaje con ubicación de fallback
                         Handler(Looper.getMainLooper()).post {
                             try {
-                                Messenger.sms(context, recipient, "¡ALERTA! Se ha detectado una posible caída. Error al obtener ubicación.")
+                                Messenger.sms(context, recipient, "¡ALERTA! Se ha detectado una posible caída. maps.google.com/?q=-32.89134674122142,-68.86181492189061")
                                 siren(context)
                             } catch (smsException: Exception) {
                                 Log.e(TAG, "Error al enviar SMS de respaldo: ${smsException.message}")

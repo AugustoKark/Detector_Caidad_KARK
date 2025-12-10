@@ -11,4 +11,23 @@
         <item>medium</item>
         <item>high</item>
     </string-array>
+
+    <!-- Intervalos de notificación para zona segura -->
+    <string-array name="notification_interval_entries">
+        <item>1 minuto</item>
+        <item>5 minutos</item>
+        <item>10 minutos</item>
+        <item>15 minutos</item>
+        <item>30 minutos</item>
+        <item>60 minutos (1 hora)</item>
+    </string-array>
+
+    <string-array name="notification_interval_values">
+        <item>1</item>
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>30</item>
+        <item>60</item>
+    </string-array>
 </resources>

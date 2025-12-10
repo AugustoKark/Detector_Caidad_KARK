@@ -12,6 +12,7 @@ import com.kark.falldetector.R
 import com.kark.falldetector.alerts.Alarm
 import com.kark.falldetector.alerts.Contact
 import androidx.preference.SwitchPreference
+import androidx.preference.ListPreference
 import androidx.preference.PreferenceManager
 import androidx.core.content.ContextCompat
 
@@ -124,6 +125,44 @@ class Settings : PreferenceFragmentCompat() {
                 true
             }
         }
+
+        // Configurar intervalo de notificaciones de zona segura
+        findPreference<ListPreference>("safe_zone_notification_interval")?.apply {
+            val safeZoneManager = com.kark.falldetector.safezone.SafeZoneManager
+
+            // Obtener el valor actual en minutos desde SafeZoneManager
+            val currentIntervalMs = safeZoneManager.getNotificationIntervalMs(requireContext())
+            val currentIntervalMinutes = (currentIntervalMs / 60000).toInt()
+
+            // Establecer el valor seleccionado
+            value = currentIntervalMinutes.toString()
+
+            // Actualizar el summary con el valor actual
+            updateNotificationIntervalSummary(currentIntervalMinutes)
+
+            setOnPreferenceChangeListener { _, newValue ->
+                val minutes = newValue.toString().toInt()
+                val intervalMs = minutes * 60000L
+
+                // Guardar el nuevo valor
+                safeZoneManager.setNotificationIntervalMs(requireContext(), intervalMs)
+
+                // Actualizar el summary
+                updateNotificationIntervalSummary(minutes)
+
+                true
+            }
+        }
+    }
+
+    private fun updateNotificationIntervalSummary(minutes: Int) {
+        findPreference<ListPreference>("safe_zone_notification_interval")?.apply {
+            summary = when (minutes) {
+                1 -> "Alertas cada 1 minuto"
+                60 -> "Alertas cada 1 hora"
+                else -> "Alertas cada $minutes minutos"
+            }
+        }
     }
 
     private fun updateFallDetectionSummary(isEnabled: Boolean) {
@@ -220,6 +259,15 @@ class Settings : PreferenceFragmentCompat() {
             val safeZoneManager = com.kark.falldetector.safezone.SafeZoneManager
             isChecked = safeZoneManager.isMonitoringEnabled(requireContext())
             updateSafeZoneMonitoringSummary(isChecked)
+        }
+
+        // Actualizar intervalo de notificaciones
+        findPreference<ListPreference>("safe_zone_notification_interval")?.apply {
+            val safeZoneManager = com.kark.falldetector.safezone.SafeZoneManager
+            val currentIntervalMs = safeZoneManager.getNotificationIntervalMs(requireContext())
+            val currentIntervalMinutes = (currentIntervalMs / 60000).toInt()
+            value = currentIntervalMinutes.toString()
+            updateNotificationIntervalSummary(currentIntervalMinutes)
         }
     }
 }

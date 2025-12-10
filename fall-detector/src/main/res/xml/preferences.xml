@@ -69,6 +69,17 @@
             android:icon="@drawable/ic_location"
             app:iconSpaceReserved="true" />
 
+        <ListPreference
+            android:key="safe_zone_notification_interval"
+            android:title="Intervalo de Notificaciones"
+            android:summary="Tiempo entre alertas de zona segura"
+            android:defaultValue="60"
+            android:entries="@array/notification_interval_entries"
+            android:entryValues="@array/notification_interval_values"
+            android:icon="@drawable/ic_timer"
+            android:dependency="safe_zone_monitoring_enabled"
+            app:iconSpaceReserved="true" />
+
     </PreferenceCategory>
 
     <!-- Categoría de Privacidad y Datos -->
