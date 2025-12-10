@@ -123,10 +123,10 @@ class Alarm private constructor(private val context: Guardian) {
 
                         message = if (location != null) {
                             // Simplificamos la URL para evitar problemas de formateo
-                            "¡ALERTA! Se ha detectado una posible caída. maps.google.com/?q=${location?.latitude},${location?.longitude}"
+                            "¡ALERTA! Se ha detectado una posible caída. https://maps.google.com/?q=${location?.latitude},${location?.longitude}"
                         } else {
                             // Usar ubicación de fallback cuando no se puede obtener GPS
-                            "¡ALERTA! Se ha detectado una posible caída. maps.google.com/?q=$fallbackLat,$fallbackLng"
+                            "¡ALERTA! Se ha detectado una posible caída. https://maps.google.com/?q=$fallbackLat,$fallbackLng"
                         }
 
                         // Enviamos el mensaje en el hilo principal
@@ -161,7 +161,7 @@ class Alarm private constructor(private val context: Guardian) {
                         // En caso de error, enviamos mensaje con ubicación de fallback
                         Handler(Looper.getMainLooper()).post {
                             try {
-                                Messenger.sms(context, recipient, "¡ALERTA! Se ha detectado una posible caída. maps.google.com/?q=-32.89134674122142,-68.86181492189061")
+                                Messenger.sms(context, recipient, "¡ALERTA! Se ha detectado una posible caída. https://maps.google.com/?q=-32.89134674122142,-68.86181492189061")
                                 siren(context)
                             } catch (smsException: Exception) {
                                 Log.e(TAG, "Error al enviar SMS de respaldo: ${smsException.message}")
