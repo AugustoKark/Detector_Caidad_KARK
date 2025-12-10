@@ -2,9 +2,7 @@ package com.kark.falldetector.alerts
 
 import com.kark.falldetector.utils.Log
 import com.kark.falldetector.core.Guardian
-import com.kark.falldetector.sensors.Positioning
 import android.content.Context
-import android.location.Location
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
@@ -86,93 +84,33 @@ class Alarm private constructor(private val context: Guardian) {
 
         @RequiresApi(Build.VERSION_CODES.M)
         fun alert(context: Context) {
-            // Primero enviamos SMS
             val recipient = Contact[context]
             if (recipient != null && recipient.isNotBlank()) {
                 Log.d(TAG, "Iniciando alerta para enviar a: $recipient")
 
-                // Obtenemos la ubicación actual - con intentos múltiples
-                val position = Positioning.singleton
-                var location: Location? = null
-                var message: String
+                // Enviamos SMS inmediatamente sin ubicación
+                try {
+                    val message = "¡ALERTA! Se ha detectado una posible caída."
+                    Log.d(TAG, "Enviando SMS: $message")
+                    Messenger.sms(context, recipient, message)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error al enviar SMS: ${e.message}")
+                }
 
-                // Ejecutamos en un hilo separado para no bloquear la UI
-                Thread {
+                // Reproducimos sonido de alarma
+                siren(context)
+
+                // Realizamos la llamada después de un breve retraso
+                Handler(Looper.getMainLooper()).postDelayed({
                     try {
-                        // Intentamos obtener la ubicación hasta 5 veces con 2 segundos entre intentos
-                        val maxAttempts = 5
-                        for (attempt in 1..maxAttempts) {
-                            Log.d(TAG, "Intento $attempt de $maxAttempts para obtener ubicación")
-                            location = position?.getLastKnownLocation()
-
-                            if (location != null) {
-                                Log.d(TAG, "Ubicación obtenida en intento $attempt: ${location?.latitude}, ${location?.longitude}")
-                                break  // Salir del bucle si obtuvimos ubicación
-                            }
-
-                            if (attempt < maxAttempts) {
-                                Log.d(TAG, "Esperando 2 segundos antes del siguiente intento...")
-                                Thread.sleep(2000)  // Esperar 2 segundos entre intentos
-                            }
-                        }
-
-                        // Creamos el mensaje con la ubicación si está disponible
-                        // Coordenadas de fallback para presentación
-                        val fallbackLat = -32.89134674122142
-                        val fallbackLng = -68.86181492189061
-
-                        message = if (location != null) {
-                            // Simplificamos la URL para evitar problemas de formateo
-                            "¡ALERTA! Se ha detectado una posible caída. https://maps.google.com/?q=${location?.latitude},${location?.longitude}"
-                        } else {
-                            // Usar ubicación de fallback cuando no se puede obtener GPS
-                            "¡ALERTA! Se ha detectado una posible caída. https://maps.google.com/?q=$fallbackLat,$fallbackLng"
-                        }
-
-                        // Enviamos el mensaje en el hilo principal
-                        Handler(Looper.getMainLooper()).post {
-                            try {
-                                Log.d(TAG, "Enviando SMS: $message")
-                                Messenger.sms(context, recipient, message)
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Error al enviar SMS: ${e.message}")
-                                // Intento de respaldo con el mensaje básico
-                                Messenger.sms(context, recipient, "¡ALERTA! Se ha detectado una posible caída.")
-                            }
-                        }
-
-                        // Reproducimos sonido de alarma
-                        Handler(Looper.getMainLooper()).post {
-                            siren(context)
-                        }
-
-                        // Y realizamos la llamada después de un breve retraso
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            try {
-                                Messenger.call(context, recipient)
-                            } catch (exception: Exception) {
-                                Log.e(TAG, "Could not make an emergency call: ${exception.message}")
-                            }
-                        }, 3000)  // Esperar 3 segundos antes de realizar la llamada
-
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error durante la obtención de ubicación: ${e.message}")
-
-                        // En caso de error, enviamos mensaje con ubicación de fallback
-                        Handler(Looper.getMainLooper()).post {
-                            try {
-                                Messenger.sms(context, recipient, "¡ALERTA! Se ha detectado una posible caída. https://maps.google.com/?q=-32.89134674122142,-68.86181492189061")
-                                siren(context)
-                            } catch (smsException: Exception) {
-                                Log.e(TAG, "Error al enviar SMS de respaldo: ${smsException.message}")
-                            }
-                        }
+                        Messenger.call(context, recipient)
+                    } catch (exception: Exception) {
+                        Log.e(TAG, "Could not make an emergency call: ${exception.message}")
                     }
-                }.start()
+                }, 3000)
 
             } else {
                 Log.e(TAG, "No recipient specified for alert")
-                // Aún así reproducimos el sonido de alarma
                 siren(context)
             }
         }
